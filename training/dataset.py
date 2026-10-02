@@ -5,8 +5,7 @@ import torch
 from torch.utils.data import Dataset
 
 from paths import CROPS_DIR as CROPS
-from pose_utils import (FLIP_INDEX, INPUT_SIZE, apply_affine, make_heatmaps, square_affine,
-                        to_tensor_input)
+from pose_utils import FLIP_INDEX, INPUT_SIZE, apply_affine, make_heatmaps, square_affine, to_uint8_chw
 
 CROP = 320
 BASE_SIDE = CROP / 1.5 * 1.25   # bbox nằm gọn, chừa 25% lề như SimpleBaseline
@@ -45,16 +44,17 @@ class CocoPoseCrops(Dataset):
         return c, side, rot, flip
 
     def _color(self, img):
-        img = img.astype(np.float32)
-        img = img * np.random.uniform(0.6, 1.4) + np.random.uniform(-30, 30)  # contrast, brightness
-        if np.random.rand() < 0.5:  # saturation
-            gray = img.mean(2, keepdims=True)
-            img = gray + (img - gray) * np.random.uniform(0.5, 1.5)
+        # Tính trực tiếp trên uint8 bằng OpenCV (tự cắt về [0,255]) — nhanh hơn ~6 lần so với float32
+        img = cv2.addWeighted(img, np.random.uniform(0.6, 1.4), img, 0, np.random.uniform(-30, 30))  # contrast, brightness
+        if np.random.rand() < 0.5:  # saturation: trộn với ảnh xám (trung bình 3 kênh)
+            gray = cv2.cvtColor(cv2.transform(img, np.full((1, 3), 1 / 3)), cv2.COLOR_GRAY2BGR)
+            s = np.random.uniform(0.5, 1.5)
+            img = cv2.addWeighted(img, s, gray, 1 - s, 0)
         if np.random.rand() < 0.3:  # random erasing: mô phỏng che khuất / tay ra khỏi khung
             h, w = np.random.randint(20, 90, 2)
             y, x = np.random.randint(0, INPUT_SIZE - h), np.random.randint(0, INPUT_SIZE - w)
-            img[y:y + h, x:x + w] = np.random.uniform(0, 255, 3)
-        return np.clip(img, 0, 255).astype(np.uint8)
+            img[y:y + h, x:x + w] = np.random.randint(0, 256, 3, dtype=np.uint8)
+        return img
 
     def __getitem__(self, i):
         img = cv2.imread(str(CROPS / self.split / f"{self.ann_id[i]}.jpg"))
@@ -72,5 +72,5 @@ class CocoPoseCrops(Dataset):
         if self.train:
             inp = self._color(inp)
         hm, w = make_heatmaps(kp_in, vis)
-        return (torch.from_numpy(to_tensor_input(inp)), torch.from_numpy(hm), torch.from_numpy(w),
+        return (torch.from_numpy(to_uint8_chw(inp)), torch.from_numpy(hm), torch.from_numpy(w),
                 torch.from_numpy(M), i)

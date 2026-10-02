@@ -1,8 +1,8 @@
 """SkyPose API: phục vụ Model 1 (pose estimation tự train) + web game.
 
-Chạy:  .venv/bin/uvicorn server.app:app --host 0.0.0.0 --port 8000
-  - Game:     http://localhost:8000/
-  - Swagger:  http://localhost:8000/docs
+Chạy:  .venv/bin/uvicorn server.app:app --port 8765   (model: $SKYPOSE_CKPT, mặc định checkpoints/resnet18/best.pt)
+  - Game:     http://localhost:8765/
+  - Swagger:  http://localhost:8765/docs
 """
 import json
 import os
@@ -19,7 +19,7 @@ from .controls import FlightControls
 from .pose_engine import KEYPOINTS, PoseEngine, PoseSession
 
 ROOT = Path(__file__).resolve().parents[1]
-CKPT = Path(os.environ.get("SKYPOSE_CKPT", ROOT / "checkpoints" / "best.pt"))
+CKPT = Path(os.environ.get("SKYPOSE_CKPT", ROOT / "checkpoints" / "resnet18" / "best.pt"))
 SKELETON = [(5, 6), (5, 7), (7, 9), (6, 8), (8, 10), (5, 11), (6, 12), (11, 12),
             (11, 13), (13, 15), (12, 14), (14, 16), (0, 1), (0, 2), (1, 3), (2, 4)]
 

@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 
 from dataset import CROP, CocoPoseCrops
 from model import PoseNet
-from pose_utils import FLIP_INDEX, KEYPOINTS, decode_heatmaps, heatmap_to_input
+from pose_utils import FLIP_INDEX, KEYPOINTS, decode_heatmaps, heatmap_to_input, normalize_batch
 
 from paths import ANN_DIR, ROOT
 
@@ -29,7 +29,7 @@ def predict(model, ds, device, flip=True, bs=64, workers=8):
     dl = DataLoader(ds, bs, shuffle=False, num_workers=workers, pin_memory=True)
     all_xy, all_conf = [], []
     for x, _, _, M, idx in dl:
-        x = x.to(device, non_blocking=True)
+        x = normalize_batch(x.to(device, non_blocking=True))
         with torch.autocast("cuda", dtype=torch.float16):
             hm = model(x).float()
             if flip:
@@ -107,7 +107,7 @@ def speed(model, device, n=200):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ckpt", default=str(ROOT / "checkpoints" / "best.pt"))
+    ap.add_argument("--ckpt", default=str(ROOT / "checkpoints" / "resnet18" / "best.pt"))
     ap.add_argument("--no-flip", action="store_true")
     ap.add_argument("--out", default=str(ROOT / "report" / "eval_results.json"))
     args = ap.parse_args()

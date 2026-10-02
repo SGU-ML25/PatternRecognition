@@ -38,7 +38,9 @@ Trình duyệt (web/)                              Server (server/)
 - Cắt vùng vuông quanh mỗi người (1.5× bbox) → lưu JPEG 320×320 + toạ độ khớp đã quy đổi.
 
 ### 3.3 Mô hình: SimpleBaseline (Xiao et al., 2018)
-- Backbone ResNet (khởi tạo ImageNet — transfer learning) → 3 lớp Deconv → 17 heatmap 64×64.
+- Backbone **ResNet18** (khởi tạo ImageNet — transfer learning) → 3 lớp Deconv → 17 heatmap 64×64.
+  ResNet18 được chọn làm model chính: nhẹ (15,4M tham số), suy luận nhanh cho game, đủ chính xác với 8 khớp thân trên.
+  ResNet50 (34M) là phương án so sánh nếu còn tài nguyên GPU.
 - Đầu vào 256×256 (vuông, vì tay dang ngang làm vùng thân trên rộng).
 - Loss: MSE trên heatmap Gaussian (σ=2), có trọng số theo visibility.
 - Giải mã: argmax + dịch 1/4 pixel theo gradient + flip-test khi đánh giá.
@@ -49,7 +51,8 @@ Trình duyệt (web/)                              Server (server/)
 - Che ngẫu nhiên (random erasing) để chịu được tay ra khỏi khung.
 
 ### 3.5 Huấn luyện
-- AdamW, lr 1e-3, cosine decay, AMP (fp16) cho GPU 4GB, batch 32.
+- AdamW, lr 1e-3, cosine decay, AMP (fp16). Batch 32 (laptop 4GB) / 128 (Kaggle T4 x2).
+- Nạp dữ liệu tối ưu cho máy ít CPU: augmentation màu bằng OpenCV uint8, chuẩn hoá ảnh trên GPU.
 - Lưu checkpoint tốt nhất theo AP trên val.
 
 ### 3.6 Đánh giá

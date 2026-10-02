@@ -41,9 +41,9 @@ ON_KAGGLE = Path("/kaggle").exists()
 REPO_URL = os.environ.get("SKYPOSE_REPO_URL", "https://github.com/SGU-ML25/PatternRecognition.git")
 BRANCH = "main"
 
-BACKBONE = "resnet50"     # "resnet18" | "resnet34" | "resnet50"
-EPOCHS = 20
-BATCH_SIZE = 64           # tổng batch (DataParallel tự chia cho 2 GPU)
+BACKBONE = "resnet18"     # "resnet18" (mặc định: nhẹ, nhanh, đủ chính xác cho game) | "resnet34" | "resnet50"
+EPOCHS = 20              # resnet18 trên T4 x2: ~15-18 phút/epoch (thường nghẽn ở 4 CPU nạp dữ liệu)
+BATCH_SIZE = 128         # tổng batch (DataParallel tự chia cho 2 GPU)
 RESUME_FROM = None        # vd. "/kaggle/input/skypose-ckpt/last.pt" để train tiếp
 SMOKE_TEST = not ON_KAGGLE  # chạy thử vài phút khi không ở trên Kaggle
 

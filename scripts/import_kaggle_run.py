@@ -1,6 +1,6 @@
 """Nhập kết quả một lần train trên Kaggle (file zip tải từ tab Output) vào runs/ để lưu trữ.
 
-    python scripts/import_kaggle_run.py ~/Downloads/skypose_20261002-2100_resnet50_kaggle.zip
+    python scripts/import_kaggle_run.py ~/Downloads/skypose_20261002-2100_resnet18_kaggle.zip
 
 Kết quả: runs/<tên lần chạy>/ gồm run_info.json, logs/, <backbone>/train.log, train_log.csv,
 eval_*.json, figures/ và <backbone>/best.pt. Log + biểu đồ có thể commit lên git

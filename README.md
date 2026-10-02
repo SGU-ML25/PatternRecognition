@@ -2,7 +2,7 @@
 
 Đồ án môn **Phân tích và Nhận dạng mẫu**. Người chơi đứng trước webcam, dang tay như cánh chim
 để lái con chim bay qua 16 cổng trong thế giới 3D. Khung xương được nhận dạng bởi **model
-pose estimation tự train trên COCO-Keypoints** (SimpleBaseline, ResNet50).
+pose estimation tự train trên COCO-Keypoints** (SimpleBaseline, backbone ResNet18).
 
 Xem `PLAN.md` (kế hoạch) và `report/` (báo cáo).
 
@@ -30,8 +30,8 @@ cd ../..
 
 ```bash
 cd training
-../.venv/bin/python train.py --backbone resnet50 --epochs 20 --out ../checkpoints/resnet50
-../.venv/bin/python evaluate.py --ckpt ../checkpoints/resnet50/best.pt --out ../report/eval_resnet50.json
+../.venv/bin/python train.py --backbone resnet18 --epochs 20 --bs 32 --out ../checkpoints/resnet18
+../.venv/bin/python evaluate.py --ckpt ../checkpoints/resnet18/best.pt --out ../report/eval_resnet18.json
 ```
 
 ### Train trên Kaggle (GPU miễn phí)
@@ -57,7 +57,7 @@ Sửa notebook: sửa `kaggle/skypose_train_kaggle.py` rồi chạy `python kagg
 ## 3. Chạy game
 
 ```bash
-SKYPOSE_CKPT=checkpoints/resnet50/best.pt .venv/bin/uvicorn server.app:app --port 8765
+SKYPOSE_CKPT=checkpoints/resnet18/best.pt .venv/bin/uvicorn server.app:app --port 8765
 ```
 
 - Game: <http://localhost:8765/> (webcam cần `localhost` hoặc HTTPS)

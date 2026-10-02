@@ -13,7 +13,7 @@ BACKBONES = {
 
 
 class PoseNet(nn.Module):
-    def __init__(self, backbone="resnet50", pretrained=True, deconv_ch=256):
+    def __init__(self, backbone="resnet18", pretrained=True, deconv_ch=256):
         super().__init__()
         fn, weights, out_ch = BACKBONES[backbone]
         net = fn(weights=weights if pretrained else None)

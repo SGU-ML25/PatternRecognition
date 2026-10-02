@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, Subset
 from dataset import CocoPoseCrops
 from evaluate import coco_ap, pck, predict
 from model import PoseNet
+from pose_utils import normalize_batch
 
 ROOT = Path(__file__).resolve().parents[1]
 LOG_FILE = None  # <out>/train.log — đặt trong main()
@@ -36,7 +37,7 @@ def weighted_mse(pred, target, w):
 def main():
     global LOG_FILE
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backbone", default="resnet50")
+    ap.add_argument("--backbone", default="resnet18")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--bs", type=int, default=32)
     ap.add_argument("--lr", type=float, default=1e-3)
@@ -104,7 +105,7 @@ def main():
         model.train()
         t0, run, n = time.time(), 0.0, 0
         for it, (x, hm, w, _, _) in enumerate(dl):
-            x = x.to(device, non_blocking=True).to(memory_format=torch.channels_last)
+            x = normalize_batch(x.to(device, non_blocking=True))
             hm, w = hm.to(device, non_blocking=True), w.to(device, non_blocking=True)
             with torch.autocast("cuda", dtype=torch.float16):
                 pred = model(x)

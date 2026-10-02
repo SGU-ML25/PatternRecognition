@@ -44,9 +44,25 @@ def apply_affine(pts, M):
 
 
 def to_tensor_input(img_bgr):
-    """BGR uint8 HxWx3 -> float32 3xHxW đã chuẩn hoá ImageNet."""
+    """BGR uint8 HxWx3 -> float32 3xHxW đã chuẩn hoá ImageNet (dùng khi suy luận từng ảnh)."""
     x = img_bgr[:, :, ::-1].astype(np.float32) / 255.0
     return ((x - MEAN) / STD).transpose(2, 0, 1).copy()
+
+
+def to_uint8_chw(img_bgr):
+    """BGR uint8 HxWx3 -> RGB uint8 3xHxW. Dataset trả dạng này (nhẹ hơn 4 lần so với float32),
+    việc chuẩn hoá làm trên GPU bằng normalize_batch()."""
+    return np.ascontiguousarray(img_bgr[:, :, ::-1].transpose(2, 0, 1))
+
+
+def normalize_batch(x):
+    """Tensor uint8 (N,3,H,W) RGB trên GPU -> float32 chuẩn hoá ImageNet, channels_last.
+    Cho kết quả giống hệt to_tensor_input()."""
+    import torch
+    mean = torch.tensor(MEAN, device=x.device).view(1, 3, 1, 1)
+    std = torch.tensor(STD, device=x.device).view(1, 3, 1, 1)
+    x = (x.float() / 255.0 - mean) / std
+    return x.contiguous(memory_format=torch.channels_last)
 
 
 def make_heatmaps(kp_in, vis, sigma=2.0):
