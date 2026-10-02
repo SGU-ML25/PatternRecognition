@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SkyPose</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+  <div id="app">
+    <!-- Nửa trên: webcam + skeleton (giống video) -->
+    <section id="cam-panel">
+      <video id="cam" autoplay playsinline muted></video>
+      <canvas id="cam-overlay"></canvas>
+      <div id="cam-off">Webcam chưa bật — đang chơi bằng bàn phím</div>
+      <div id="pose-stats"></div>
+    </section>
+
+    <!-- Nửa dưới: game 3D -->
+    <section id="game-panel">
+      <canvas id="game"></canvas>
+      <div id="hud">
+        <div id="hud-gates">◎ <span id="gate-count">0/16</span></div>
+        <div id="hud-time">⏱ <span id="timer">0:00</span></div>
+        <div id="hud-alt"></div>
+        <div id="markers"></div>
+        <div id="toast"></div>
+        <div id="brand">#skypose<small>Pattern Recognition · tự train trên COCO-Keypoints</small></div>
+        <div id="ctrl-debug">
+          <label>Rẽ <meter id="m-bank-l" min="0" max="1"></meter><meter id="m-bank-r" min="0" max="1"></meter></label>
+          <label>Vỗ cánh <meter id="m-flap" min="0" max="1"></meter></label>
+          <label>Bổ nhào <meter id="m-dive" min="0" max="1"></meter></label>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Màn hình bắt đầu -->
+  <div id="menu" class="overlay">
+    <div class="card">
+      <h1>SkyPose</h1>
+      <p class="sub">Dang tay thành cánh chim — bay qua 16 cổng nhanh nhất có thể.</p>
+      <table class="howto">
+        <tr><td>🕊️ Dang ngang 2 tay</td><td>Lượn</td></tr>
+        <tr><td>↙️↘️ Nghiêng tay như cánh máy bay</td><td>Rẽ trái / phải</td></tr>
+        <tr><td>⬇️ Vẫy mạnh tay xuống</td><td>Vỗ cánh, bay lên</td></tr>
+        <tr><td>🫷 Khép tay sát người</td><td>Bổ nhào</td></tr>
+      </table>
+      <p class="keys">Bàn phím: ← → rẽ · Space vỗ cánh · ↓ bổ nhào</p>
+      <div class="buttons">
+        <button id="btn-cam" class="primary">Chơi bằng webcam</button>
+        <button id="btn-kb">Chơi bằng bàn phím</button>
+      </div>
+      <p id="server-status" class="status">Đang kết nối model…</p>
+    </div>
+  </div>
+
+  <!-- Hiệu chỉnh: chờ người chơi dang tay -->
+  <div id="calib" class="overlay hidden">
+    <div class="card small">
+      <h2 id="calib-title">Đứng lùi lại cho thấy nửa người trên</h2>
+      <p id="calib-msg">rồi dang ngang 2 tay để bắt đầu</p>
+      <div class="progress"><div id="calib-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Kết thúc -->
+  <div id="end" class="overlay hidden">
+    <div class="card small">
+      <h2>Hoàn thành!</h2>
+      <p id="end-msg"></p>
+      <div class="buttons"><button id="btn-again" class="primary">Chơi lại</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

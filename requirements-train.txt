@@ -1,0 +1,3 @@
+# Train trên Kaggle/Colab (torch, torchvision, opencv, numpy đã có sẵn ở đó)
+pycocotools
+matplotlib

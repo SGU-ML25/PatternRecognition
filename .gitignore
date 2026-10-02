@@ -1,0 +1,12 @@
+# dữ liệu & kết quả nặng (tải/tạo lại bằng script)
+data/
+checkpoints/
+logs/
+*.pt
+*.zip
+kaggle/smoke_*/
+# môi trường
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

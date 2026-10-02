@@ -1,0 +1,10 @@
+# Đầy đủ cho máy local: train + server game
+torch
+torchvision
+opencv-python
+numpy
+pycocotools
+matplotlib
+fastapi
+uvicorn[standard]
+python-multipart
