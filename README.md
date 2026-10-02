@@ -41,6 +41,17 @@ cd training
 — xem `training/paths.py`). Các bước: Import notebook → GPU T4 x2 + Internet On → (tuỳ chọn) gắn
 dataset COCO 2017 → sửa `REPO_URL` → Save & Run All. Kết quả: `out/skypose_<backbone>.zip`.
 
+Mọi log được ghi liên tục vào `out/` (kể cả khi lỗi giữa chừng) và đóng gói vào
+`out/skypose_<thời gian>_<backbone>_kaggle.zip`: `run_info.json` (commit, cấu hình, GPU, thời gian
+từng bước), `logs/*.log` (output từng bước), `<backbone>/train.log` (có thời gian),
+`train_log.csv`, `eval_*.json`, `figures/`, `best.pt`. Lưu trữ ở máy local:
+
+```bash
+python scripts/import_kaggle_run.py ~/Downloads/skypose_*.zip   # -> runs/<tên lần chạy>/
+```
+
+Log, json, biểu đồ trong `runs/` có thể commit lên git (`*.pt` bị loại trừ).
+
 Sửa notebook: sửa `kaggle/skypose_train_kaggle.py` rồi chạy `python kaggle/build_notebook.py`.
 
 ## 3. Chạy game

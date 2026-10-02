@@ -1,7 +1,8 @@
-# dữ liệu & kết quả nặng (tải/tạo lại bằng script)
-data/
-checkpoints/
-logs/
+# dữ liệu & kết quả nặng ở thư mục gốc (tải/tạo lại bằng script)
+/data/
+/checkpoints/
+/logs/
+# model + file nén ở mọi nơi (runs/ chỉ commit log, json, biểu đồ)
 *.pt
 *.zip
 kaggle/smoke_*/

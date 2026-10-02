@@ -4,7 +4,10 @@ import csv
 import math
 import os
 import shutil
+import sys
 import time
+import traceback
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -15,6 +18,15 @@ from evaluate import coco_ap, pck, predict
 from model import PoseNet
 
 ROOT = Path(__file__).resolve().parents[1]
+LOG_FILE = None  # <out>/train.log — đặt trong main()
+
+
+def log(msg):
+    """In ra màn hình và ghi thêm vào train.log (kèm thời gian) để lưu trữ."""
+    print(msg, flush=True)
+    if LOG_FILE is not None:
+        with open(LOG_FILE, "a") as f:
+            f.write(f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}\n")
 
 
 def weighted_mse(pred, target, w):
@@ -22,6 +34,7 @@ def weighted_mse(pred, target, w):
 
 
 def main():
+    global LOG_FILE
     ap = argparse.ArgumentParser()
     ap.add_argument("--backbone", default="resnet50")
     ap.add_argument("--epochs", type=int, default=30)
@@ -39,6 +52,14 @@ def main():
     device = "cuda"
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    LOG_FILE = out / "train.log"
+    resume_ck = Path(args.resume_from) if args.resume_from else out / "last.pt"
+    if args.resume_from and (resume_ck.parent / "train.log").exists() and not LOG_FILE.exists():
+        shutil.copy(resume_ck.parent / "train.log", LOG_FILE)  # nối tiếp log của lần train trước
+    gpus = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
+    log(f"===== Bắt đầu: {' '.join(sys.argv)}")
+    log(f"config: {vars(args)}")
+    log(f"torch {torch.__version__} | GPU: {gpus}")
 
     train_ds = CocoPoseCrops("train", train=True)
     val_ds = CocoPoseCrops("val", train=False)
@@ -54,7 +75,7 @@ def main():
     core = model  # model gốc (để lưu state_dict không có tiền tố "module.")
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
-        print(f"DataParallel trên {torch.cuda.device_count()} GPU")
+        log(f"DataParallel trên {torch.cuda.device_count()} GPU")
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     total, warm = args.epochs * len(dl), min(1000, len(dl))
     sched = torch.optim.lr_scheduler.LambdaLR(
@@ -62,14 +83,13 @@ def main():
     scaler = torch.amp.GradScaler()
     start, best = 1, -1.0
     log_path = out / "train_log.csv"
-    resume_ck = Path(args.resume_from) if args.resume_from else out / "last.pt"
     if (args.resume or args.resume_from) and resume_ck.exists():
         ck = torch.load(resume_ck, map_location="cpu", weights_only=False)
         assert ck["backbone"] == args.backbone, f"checkpoint là {ck['backbone']}"
         core.load_state_dict(ck["model"]); opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"]); scaler.load_state_dict(ck["scaler"])
         start, best = ck["epoch"] + 1, ck["best"]
-        print(f"Resume từ epoch {ck['epoch']} ({resume_ck}), best AP={best:.4f}")
+        log(f"Resume từ epoch {ck['epoch']} ({resume_ck}), best AP={best:.4f}")
         old_log = resume_ck.parent / "train_log.csv"
         if old_log.exists() and not log_path.exists():
             shutil.copy(old_log, log_path)  # giữ lịch sử các epoch trước
@@ -78,7 +98,7 @@ def main():
         with open(log_path, "w", newline="") as f:
             csv.writer(f).writerow(["epoch", "train_loss", "lr", "AP", "AP50", "AP75", "AR",
                                     "PCK@0.1_control", "minutes"])
-    print(f"{args.backbone}: {len(train_ds)} mẫu train, {len(dl)} iter/epoch, {len(val_ds)} mẫu val")
+    log(f"{args.backbone}: {len(train_ds)} mẫu train, {len(dl)} iter/epoch, {len(val_ds)} mẫu val")
 
     for ep in range(start, args.epochs + 1):
         model.train()
@@ -94,13 +114,13 @@ def main():
             scaler.step(opt); scaler.update(); sched.step()
             run += loss.item(); n += 1
             if it % 200 == 0:
-                print(f"ep {ep} it {it}/{len(dl)} loss {run / n:.6f} lr {sched.get_last_lr()[0]:.2e} "
-                      f"{(it + 1) * args.bs / (time.time() - t0):.0f} img/s", flush=True)
+                log(f"ep {ep} it {it}/{len(dl)} loss {run / n:.6f} lr {sched.get_last_lr()[0]:.2e} "
+                    f"{(it + 1) * args.bs / (time.time() - t0):.0f} img/s")
         xy, conf = predict(model, val_ds, device, flip=True)
         coco, pk = coco_ap(val_ds, xy, conf), pck(val_ds, xy)
         mins = (time.time() - t0) / 60
-        print(f"== ep {ep}: loss {run / n:.6f} AP {coco['AP']:.4f} AP50 {coco['AP50']:.4f} "
-              f"PCK@0.1(control) {pk['PCK@0.1']['control_joints']:.4f} ({mins:.1f} phút)", flush=True)
+        log(f"== ep {ep}: loss {run / n:.6f} AP {coco['AP']:.4f} AP50 {coco['AP50']:.4f} "
+            f"PCK@0.1(control) {pk['PCK@0.1']['control_joints']:.4f} ({mins:.1f} phút)")
         with open(log_path, "a", newline="") as f:
             csv.writer(f).writerow([ep, run / n, sched.get_last_lr()[0], coco["AP"], coco["AP50"],
                                     coco["AP75"], coco["AR"], pk["PCK@0.1"]["control_joints"], mins])
@@ -112,8 +132,14 @@ def main():
             best = coco["AP"]
             torch.save({"model": core.state_dict(), "backbone": args.backbone, "epoch": ep, "coco": coco},
                        out / "best.pt")
-            print(f"   -> best.pt (AP {best:.4f})")
+            log(f"   -> best.pt (AP {best:.4f})")
+    log(f"===== Xong: best AP {best:.4f}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException as e:  # ghi lại lỗi / Ctrl+C vào train.log trước khi thoát
+        if LOG_FILE is not None and not isinstance(e, SystemExit):
+            log(f"===== DỪNG do {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        raise
