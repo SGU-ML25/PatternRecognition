@@ -11,9 +11,14 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
 
-#app { display: grid; grid-template-rows: 34vh 1fr; height: 100vh; }
+/* Khung webcam dọc (3:4) bên trái, game bên phải: khung dọc chứa được cả người từ đầu đến chân.
+   --cam-aspect do main.js đặt theo FRAME_ASPECT (?cam=ngang -> 4:3). */
+#app { display: flex; height: 100vh; }
 
-#cam-panel { position: relative; background: #1b1f2e; overflow: hidden; }
+#cam-panel {
+  position: relative; background: #1b1f2e; overflow: hidden;
+  flex: 0 0 auto; height: 100%; aspect-ratio: var(--cam-aspect, 0.75); max-width: 50vw;
+}
 #cam, #cam-overlay {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   transform: scaleX(-1); /* gương: người chơi thấy mình như soi gương */
@@ -28,7 +33,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 }
 #pose-stats:empty { display: none; }
 
-#game-panel { position: relative; overflow: hidden; }
+#game-panel { position: relative; overflow: hidden; flex: 1 1 0; min-width: 0; min-height: 0; }
 #game { display: block; width: 100%; height: 100%; }
 #hud { position: absolute; inset: 0; pointer-events: none; }
 #hud-gates, #hud-time {
@@ -78,6 +83,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 }
 .overlay.hidden { display: none; }
 .overlay#calib { background: transparent; place-items: end center; padding-bottom: 8vh; }
+/* Màn hình ngang: thẻ hiệu chỉnh nằm trên phần game, không che chân trong khung webcam */
+@media (min-aspect-ratio: 5/4) {
+  .overlay#calib { left: min(calc(100vh * var(--cam-aspect, 0.75)), 50vw); }
+}
 .card {
   width: min(560px, 100%); background: var(--panel); border: 1px solid #ffffff1a; border-radius: 18px;
   padding: 26px 28px; box-shadow: 0 20px 60px #0009; text-align: center;
@@ -103,4 +112,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .progress { height: 8px; background: #ffffff1a; border-radius: 99px; overflow: hidden; margin-top: 10px; }
 #calib-bar { height: 100%; width: 0; background: var(--gold); transition: width .1s; }
 
-@media (max-aspect-ratio: 3/4) { #app { grid-template-rows: 30vh 1fr; } }
+/* Màn hình dọc / hẹp: xếp chồng — webcam dọc ở trên (giữa), game ở dưới */
+@media (max-aspect-ratio: 5/4) {
+  #app { flex-direction: column; }
+  #cam-panel { height: 44vh; max-width: 100%; align-self: center; }
+}

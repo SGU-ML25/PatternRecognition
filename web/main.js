@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { Bird } from './bird.js';
-import { PoseClient } from './pose.js';
+import { FRAME_ASPECT, PoseClient } from './pose.js';
 import { GATE_RADIUS, WORLD_SIZE, buildCourse, buildWorld, styleGates, terrainHeight } from './world.js';
 
 const $ = (id) => document.getElementById(id);
 const GATES = 16;
+document.documentElement.style.setProperty('--cam-aspect', FRAME_ASPECT);
 
 // ---------- Three.js ----------
 const canvas = $('game');
@@ -260,7 +261,7 @@ function frame() {
     const ok = present && c.spread > 3.0;
     state.calib = THREE.MathUtils.clamp(state.calib + (ok ? dt : -dt) / 1.2, 0, 1);
     $('calib-bar').style.width = `${state.calib * 100}%`;
-    $('calib-title').textContent = !present ? 'Đứng lùi lại cho thấy nửa người trên' : ok ? 'Giữ nguyên…' : 'Dang ngang 2 tay';
+    $('calib-title').textContent = !present ? 'Lùi lại cho khung thấy cả người (ít nhất tới hông)' : ok ? 'Giữ nguyên…' : 'Dang ngang 2 tay';
     if (state.calib >= 1) startPlay();
   }
   if (state.mode === 'countdown') {

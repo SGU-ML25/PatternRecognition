@@ -98,7 +98,7 @@ async def ws_pose(ws: WebSocket):
             await ws.send_text(json.dumps({
                 "keypoints": [[round(float(kp[i, 0]) / w, 4), round(float(kp[i, 1]) / h, 4),
                                round(float(kp[i, 2]), 3)] for i in range(17)],
-                "box": [box[0] / w, box[1] / h, box[2] / w, box[2] / h],
+                "box": [float(box[0]) / w, float(box[1]) / h, float(box[2]) / w, float(box[2]) / h],
                 "control": ctrl,
                 "latency_ms": round((time.perf_counter() - t) * 1000, 1),
             }))

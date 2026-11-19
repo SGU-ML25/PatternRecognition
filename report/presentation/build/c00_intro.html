@@ -1,0 +1,247 @@
+    <!-- NAV -->
+    <nav>
+        <div class="logo">🐦 SkyPose</div>
+        <ul class="nav-links">
+            <li><a href="#overview">Tổng quan</a></li>
+            <li><a href="#data">Dữ liệu</a></li>
+            <li><a href="#model">Mô hình</a></li>
+            <li><a href="#training">Huấn luyện</a></li>
+            <li><a href="#results">Kết quả</a></li>
+            <li><a href="#inference">Suy luận</a></li>
+            <li><a href="#controls">Điều khiển</a></li>
+            <li><a href="#api">API</a></li>
+            <li><a href="#game">Game 3D</a></li>
+            <li><a href="#flow">E2E</a></li>
+            <li><a href="#compare">So sánh</a></li>
+            <li><a href="#future">Phát triển</a></li>
+            <li><a href="#testing">Kiểm thử</a></li>
+            <li><a href="#roadmap">Lộ trình</a></li>
+            <li><a href="#stack">Stack</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+        <h1>SkyPose — Điều Khiển Chim Bay Bằng Tư Thế Cơ Thể</h1>
+        <p class="subtitle">Đồ án môn Phân tích &amp; Nhận dạng mẫu: tự huấn luyện mô hình ước lượng tư thế người
+            (17 khớp, COCO-Keypoints) rồi biến khung xương thành lệnh lái — người chơi đứng trước webcam, dang tay như
+            cánh chim để bay qua 16 cổng trong thế giới 3D.</p>
+        <div class="badges">
+            <span class="badge">SimpleBaseline · ResNet18</span>
+            <span class="badge">COCO-Keypoints 2017</span>
+            <span class="badge">PyTorch · AMP FP16</span>
+            <span class="badge">Kaggle T4 ×2</span>
+            <span class="badge">FastAPI REST + WebSocket</span>
+            <span class="badge">One-Euro Filter</span>
+            <span class="badge">Three.js</span>
+            <span class="badge">End-to-end tự xây dựng</span>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <section>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="value">61,8%</div>
+                <div class="label">COCO Keypoint AP (val2017, GT bbox, flip-test)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">86,3%</div>
+                <div class="label">AP50 — tỉ lệ người dự đoán “đạt” ở ngưỡng OKS 0,5</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">88,0%</div>
+                <div class="label">PCK@0.1 trên 8 khớp dùng để điều khiển</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">3,3 ms</div>
+                <div class="label">Suy luận 1 ảnh FP16 trên Tesla T4 (bs = 1)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">127k</div>
+                <div class="label">Mẫu người dùng để train (6.352 mẫu val)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">15,4M</div>
+                <div class="label">Tham số mô hình (ResNet18 + 3 deconv)</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">20</div>
+                <div class="label">Epoch · 5h20′ trên Kaggle 2×T4</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">0</div>
+                <div class="label">Mô hình pose dựng sẵn (MediaPipe/MoveNet) được dùng</div>
+            </div>
+        </div>
+        <div class="highlight info">
+            <strong>Tuyên bố phạm vi:</strong> trọng tâm của đồ án là <strong>Model 1 — mô hình ước lượng tư thế tự
+            huấn luyện</strong> trên COCO-Keypoints (không dùng mô hình pose có sẵn). Các phần còn lại — tracker,
+            bộ lọc chống rung, toán điều khiển, API và game — được xây quanh mô hình đó để chứng minh mô hình chạy được
+            trong một ứng dụng thời gian thực thật. Tài liệu này đi từ bài toán → dữ liệu → mô hình → kết quả → hệ thống
+            → <strong>các chiến lược so sánh</strong> (có số đo thực nghiệm) → <strong>hướng phát triển</strong>.
+        </div>
+    </section>
+
+    <!-- CHAPTER 00 -->
+    <section id="overview">
+        <div class="section-header">
+            <div class="icon" style="background:#e0f2fe;color:var(--primary);">🏗️</div>
+            <div>
+                <div class="section-num">Chapter 00</div>
+                <h2>Bài Toán &amp; Kiến Trúc Tổng Quan</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Ý tưởng lấy từ game <em>skypeck</em>: người chơi dùng chính cơ thể làm tay cầm. Bài toán nhận dạng mẫu
+            nằm ở chỗ: từ một khung hình webcam (ảnh RGB bất kỳ, nền phức tạp, ánh sáng thay đổi) phải tìm ra
+            <strong>toạ độ 17 khớp</strong> của người chơi đủ nhanh (&gt; 30 khung/giây) và đủ ổn định để lái một vật thể
+            bay. Hệ thống tách làm 2 tầng nhận dạng nối tiếp nhau:
+        </p>
+
+        <div class="tier-list">
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--primary);">Tầng 1</div>
+                <div class="tier-content">
+                    <strong>Nhận dạng tư thế (học từ dữ liệu)</strong>
+                    <span>CNN SimpleBaseline (ResNet18) → 17 heatmap 64×64 → toạ độ khớp + độ tin cậy. Tự train trên
+                        ~127k người của COCO 2017.</span>
+                </div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--accent);">Tầng 2</div>
+                <div class="tier-content">
+                    <strong>Diễn giải tư thế (hình học, không cần học)</strong>
+                    <span>Chuẩn hoá theo độ rộng vai → góc nghiêng 2 tay (rẽ), vận tốc tay đi xuống (vỗ cánh), độ khép tay
+                        (bổ nhào). Có thể giải thích được từng lệnh.</span>
+                </div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--success);">Tầng 3</div>
+                <div class="tier-content">
+                    <strong>Ứng dụng thời gian thực</strong>
+                    <span>FastAPI phục vụ model trên GPU qua WebSocket; trình duyệt chạy game Three.js, vẽ khung xương
+                        lên video webcam.</span>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Năm thành phần &amp; trạng thái</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Thành phần</th>
+                    <th>Mã nguồn</th>
+                    <th>Kết quả chính</th>
+                    <th>Trạng thái</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td><strong>Model 1 — Pose Estimation (tự train)</strong></td>
+                    <td><code>training/</code></td>
+                    <td>AP 61,8% · PCK@0.1 điều khiển 88,0%</td>
+                    <td>✅ Xong (Kaggle, 20 epoch)</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>API server</td>
+                    <td><code>server/app.py</code>, <code>pose_engine.py</code></td>
+                    <td>REST + WebSocket, tracker + One-Euro</td>
+                    <td>✅ Chạy được</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Điều khiển bằng toán</td>
+                    <td><code>server/controls.py</code></td>
+                    <td>bank · flap · dive · spread · góc cánh</td>
+                    <td>✅ Chạy được</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>Web game 3D</td>
+                    <td><code>web/</code></td>
+                    <td>16 cổng, hiệu chỉnh, HUD, bàn phím dự phòng</td>
+                    <td>✅ Chạy được</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>Đánh giá &amp; báo cáo</td>
+                    <td><code>evaluate.py</code>, <code>make_figures.py</code>, <code>notebooks/</code></td>
+                    <td>COCO AP/AR, PCK từng khớp, tốc độ, ablation</td>
+                    <td>🟡 Đang hoàn thiện báo cáo</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Bản đồ module</h3>
+        <div class="arch-grid">
+            <div class="arch-module">
+                <div class="mod-icon">🗂️</div>
+                <div class="mod-name">prepare_data.py</div>
+                <div class="mod-desc">Cắt người 320×320 + index .npz</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🧪</div>
+                <div class="mod-name">dataset.py</div>
+                <div class="mod-desc">Augmentation, half-body, heatmap</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🧠</div>
+                <div class="mod-name">model.py</div>
+                <div class="mod-desc">SimpleBaseline: ResNet + 3 deconv</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🏋️</div>
+                <div class="mod-name">train.py</div>
+                <div class="mod-desc">AdamW, cosine, AMP, resume</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">📏</div>
+                <div class="mod-name">evaluate.py</div>
+                <div class="mod-desc">COCO OKS-AP, PCK, latency</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🎯</div>
+                <div class="mod-name">pose_engine.py</div>
+                <div class="mod-desc">Crop tracker, flip-test, One-Euro</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">📐</div>
+                <div class="mod-name">controls.py</div>
+                <div class="mod-desc">Khớp → bank/flap/dive</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🌐</div>
+                <div class="mod-name">app.py</div>
+                <div class="mod-desc">FastAPI REST + /ws/pose</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">🎮</div>
+                <div class="mod-name">web/main.js</div>
+                <div class="mod-desc">Vòng lặp game + vật lý bay</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">📷</div>
+                <div class="mod-name">web/pose.js</div>
+                <div class="mod-desc">Webcam → JPEG → WebSocket</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">☁️</div>
+                <div class="mod-name">kaggle/</div>
+                <div class="mod-desc">Notebook train GPU miễn phí</div>
+            </div>
+            <div class="arch-module">
+                <div class="mod-icon">📓</div>
+                <div class="mod-name">notebooks/</div>
+                <div class="mod-desc">Test nhận diện trên ảnh</div>
+            </div>
+        </div>
+
+        <div class="highlight">
+            <strong>Nguyên tắc thiết kế:</strong> (1) <em>học những gì khó mô tả bằng luật</em> — vị trí khớp trên ảnh
+            thật; (2) <em>tính bằng công thức những gì mô tả được</em> — ý nghĩa của tư thế; (3) <em>mọi thành phần đều
+            thay thế được độc lập</em> — đổi backbone không phải sửa game, đổi luật điều khiển không phải train lại.
+        </div>
+    </section>

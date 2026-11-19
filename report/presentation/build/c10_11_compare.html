@@ -1,0 +1,269 @@
+
+    <!-- CHAPTER 10 -->
+    <section id="compare">
+        <div class="section-header">
+            <div class="icon" style="background:#fee2e2;color:#b91c1c;">⚖️</div>
+            <div>
+                <div class="section-num">Chapter 10</div>
+                <h2>Chiến Lược So Sánh &amp; Kết Quả Thực Nghiệm</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Mỗi quyết định trong hệ thống được so sánh với phương án thay thế theo <strong>4 trục</strong>. Các bảng gắn nhãn
+            <span class="tag measured">ĐÃ ĐO</span> là số liệu chạy thật ngày 13/10/2026 bằng checkpoint epoch 20; nhãn
+            <span class="tag planned">KẾ HOẠCH</span> là thí nghiệm đã thiết kế nhưng chưa chạy; nhãn
+            <span class="tag ref">THAM KHẢO</span> là thông tin từ tài liệu, cần đối chiếu khi trích dẫn.
+        </p>
+
+        <div class="tier-list">
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--primary);">Trục A</div>
+                <div class="tier-content"><strong>Mô hình</strong><span>Độ dài huấn luyện, backbone, biểu diễn đầu ra
+                    (heatmap / hồi quy / SimCC), kích thước input.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--accent);">Trục B</div>
+                <div class="tier-content"><strong>Suy luận</strong><span>Flip-test, số lượt cắt (1 vs 2), vùng cắt theo
+                    13 hay 17 khớp, độ chính xác số (FP32/FP16), thiết bị (GPU/CPU).</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--success);">Trục C</div>
+                <div class="tier-content"><strong>Hệ thống</strong><span>Model tự train vs model dựng sẵn; chạy trên server
+                    vs ngay trong trình duyệt.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--warning);">Trục D</div>
+                <div class="tier-content"><strong>Điều khiển</strong><span>Hình học vs bộ phân loại cử chỉ học từ dữ liệu;
+                    tham số bộ lọc One-Euro.</span></div>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.1 · Độ dài huấn luyện <span class="tag measured">ĐÃ ĐO</span></h3>
+        <p class="note">COCO val2017, 6.352 người, GT bbox, flip-test bật. Cùng code, cùng kiến trúc ResNet18.</p>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Checkpoint</th><th>AP</th><th>AP50</th><th>AP75</th><th>AR</th><th>PCK@0.05 điều khiển</th><th>PCK@0.1 điều khiển</th></tr>
+                <tr><td>Epoch 3 (laptop, dừng giữa chừng)</td><td>48,3</td><td>79,3</td><td>50,5</td><td>53,3</td><td>63,5</td><td>81,1</td></tr>
+                <tr><td><strong>Epoch 20 (Kaggle)</strong></td><td><strong>61,7</strong></td><td><strong>86,3</strong></td><td><strong>69,2</strong></td><td><strong>65,6</strong></td><td><strong>73,4</strong></td><td><strong>88,1</strong></td></tr>
+                <tr><td>Chênh lệch</td><td class="up">+13,4</td><td class="up">+7,0</td><td class="up">+18,7</td><td class="up">+12,3</td><td class="up">+9,9</td><td class="up">+7,0</td></tr>
+            </table>
+        </div>
+        <div class="highlight">
+            AP75 tăng mạnh nhất (+18,7) — train lâu chủ yếu cải thiện <em>độ chính xác vị trí</em> chứ không chỉ “tìm đúng
+            khớp”. <strong>Phát hiện phụ:</strong> server và notebook mặc định nạp <code>checkpoints/resnet18/best.pt</code> — đó
+            là bản epoch 3. Notebook đã được chỉnh để ưu tiên <code>runs/*/resnet18/best.pt</code>; server nên chạy với
+            <code>SKYPOSE_CKPT=runs/20261002-1405_resnet18_kaggle/resnet18/best.pt</code>.
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.2 · Flip-test <span class="tag measured">ĐÃ ĐO</span></h3>
+        <p class="note">COCO val2017, GT bbox, checkpoint epoch 20. Độ trễ: ResNet18 FP16 trên RTX A2000 laptop, chỉ tính model.</p>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Cấu hình</th><th>AP</th><th>AP75</th><th>AR</th><th>PCK@0.1 điều khiển</th><th>Độ trễ model</th></tr>
+                <tr><td>Không flip (batch 1)</td><td>60,3</td><td>67,1</td><td>64,1</td><td>87,3</td><td>2,26 ms</td></tr>
+                <tr><td><strong>Flip-test (batch 2)</strong></td><td><strong>61,7</strong></td><td><strong>69,2</strong></td><td><strong>65,6</strong></td><td><strong>88,1</strong></td><td>2,07 ms</td></tr>
+                <tr><td>Chênh lệch</td><td class="up">+1,5</td><td class="up">+2,1</td><td class="up">+1,5</td><td class="up">+0,8</td><td>≈ 0 (GPU chưa bão hoà)</td></tr>
+            </table>
+        </div>
+        <div class="highlight success">
+            Ở batch nhỏ GPU bị giới hạn bởi độ trễ khởi chạy kernel chứ không phải tính toán, nên gộp ảnh lật vào cùng batch
+            gần như <strong>miễn phí</strong>: +1,5 AP không tốn thêm thời gian. Trên CPU thì khác — flip-test sẽ nhân đôi chi phí.
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.3 · Pipeline thật trên ảnh gốc (không có GT bbox) <span class="tag measured">ĐÃ ĐO</span></h3>
+        <p class="note">500 ảnh val2017 ngẫu nhiên (seed 0) có đúng 1 người được gán ≥ 10 khớp. Chạy như ứng dụng thật:
+            không biết bbox. Đo OKS từng ảnh rồi lấy trung bình; “OKS &gt; 0,5/0,75” là tỉ lệ ảnh đạt ngưỡng.</p>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Chiến lược cắt</th><th>Flip</th><th>Mean OKS</th><th>OKS &gt; 0,5</th><th>OKS &gt; 0,75</th></tr>
+                <tr><td>1 lượt — cả ảnh</td><td>✗</td><td>0,534</td><td>58,8%</td><td>42,8%</td></tr>
+                <tr><td>1 lượt — cả ảnh</td><td>✓</td><td>0,547</td><td>60,2%</td><td>46,6%</td></tr>
+                <tr><td>2 lượt — vùng theo 13 khớp thân trên (tracker cũ)</td><td>✗</td><td>0,594</td><td><strong>69,6%</strong></td><td>52,8%</td></tr>
+                <tr><td>2 lượt — vùng theo 13 khớp thân trên</td><td>✓</td><td>0,591</td><td>68,8%</td><td>53,0%</td></tr>
+                <tr><td>2 lượt — vùng theo cả 17 khớp</td><td>✗</td><td>0,616</td><td>68,2%</td><td>57,4%</td></tr>
+                <tr><td><strong>2 lượt — vùng theo cả 17 khớp</strong></td><td>✓</td><td><strong>0,617</strong></td><td>68,2%</td><td><strong>58,4%</strong></td></tr>
+            </table>
+        </div>
+        <div class="card-grid">
+            <div class="card">
+                <h3>📌 Kết luận 1</h3>
+                <p><strong>Chiến lược cắt quan trọng hơn flip-test</strong> khi không có bbox: 2 lượt tăng mean OKS +0,07
+                    (+13%), flip chỉ thay đổi ≤ 0,013. Đầu tư vào vùng cắt (tracker/detector) đáng hơn đầu tư vào test-time
+                    augmentation.</p>
+            </div>
+            <div class="card">
+                <h3>📌 Kết luận 2</h3>
+                <p>Ảnh COCO thường thấy cả người: vùng theo 17 khớp giữ được chân → OKS &gt; 0,75 cao hơn 5,4 điểm. Từ kết quả này
+                    giao diện chuyển sang khung webcam dọc 3:4 (thấy cả người) và tracker đổi từ 13 sang 17 khớp; notebook
+                    test ảnh tĩnh cũng dùng 17 khớp.</p>
+            </div>
+            <div class="card">
+                <h3>📌 Kết luận 3</h3>
+                <p>Khoảng cách giữa AP với GT bbox (61,7) và pipeline thật (mean OKS 0,617, chỉ 58% ảnh đạt OKS 0,75) cho
+                    thấy <strong>bước định vị người</strong> là nút thắt thứ hai sau bản thân model.</p>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.4 · Backbone × độ chính xác số × thiết bị <span class="tag measured">ĐÃ ĐO (tốc độ)</span></h3>
+        <p class="note">Input 1×3×256×256 (bs 2 = có flip-test), <code>channels_last</code>, PyTorch 2.14 + CUDA 13, RTX A2000 Laptop
+            4 GB; CPU 8 luồng. Chỉ đo forward của model. Độ chính xác ResNet34/50 chưa train nên chưa có.</p>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Backbone</th><th>Tham số</th><th>GPU FP32</th><th>GPU FP16</th><th>GPU FP16 + flip</th><th>CPU FP32</th><th>FPS CPU (không flip)</th><th>COCO AP</th></tr>
+                <tr><td><strong>ResNet18</strong></td><td>15,4M</td><td>3,57 ms</td><td><strong>2,26 ms</strong></td><td>2,07 ms</td><td>38,6 ms</td><td>~26</td><td><strong>61,7</strong> (20 ep)</td></tr>
+                <tr><td>ResNet34</td><td>25,5M</td><td>5,69 ms</td><td>3,67 ms</td><td>3,33 ms</td><td>60,1 ms</td><td>~17</td><td>chưa train</td></tr>
+                <tr><td>ResNet50</td><td>34,0M</td><td>7,78 ms</td><td>5,00 ms</td><td>5,26 ms</td><td>87,0 ms</td><td>~11</td><td>chưa train (bài báo: 70,4 với 140 ep, 256×192)</td></tr>
+            </table>
+        </div>
+        <div class="highlight info">
+            Trên GPU cả 3 backbone đều dư sức thời gian thực (&lt; 6 ms ≪ 33 ms/khung) → nếu có GPU, nâng lên ResNet50 là
+            đánh đổi hợp lý để lấy độ chính xác. Trên <strong>CPU chỉ ResNet18 đạt ~26 FPS</strong> (không flip) — đây là lý do giữ
+            ResNet18 làm model chính và là điểm xuất phát cho hướng chạy trong trình duyệt (Chapter 11).
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.5 · Biểu diễn đầu ra &amp; giải mã <span class="tag ref">THAM KHẢO</span></h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Phương pháp</th><th>Ý tưởng</th><th>Ưu</th><th>Nhược</th><th>Áp dụng cho SkyPose</th></tr>
+                <tr><td><strong>Heatmap + argmax ¼ px</strong> (đang dùng)</td><td>Gaussian 64×64, lấy đỉnh</td><td>Đơn giản, hội tụ nhanh, có độ tin cậy</td><td>Sai số lượng tử hoá (stride 4), tốn bộ nhớ deconv</td><td>Baseline</td></tr>
+                <tr><td>Hồi quy toạ độ trực tiếp</td><td>FC ra 34 số</td><td>Rất nhẹ, không cần deconv</td><td>Kém chính xác hơn rõ rệt nếu không có kỹ thuật bổ trợ (RLE)</td><td>Chỉ khi cần cực nhẹ</td></tr>
+                <tr><td>DARK (Zhang 2020)</td><td>Giải mã bằng khai triển Taylor quanh đỉnh</td><td>Không cần train lại, tăng AP thường ~1–2 điểm ở input nhỏ</td><td>Thêm chút tính toán CPU</td><td>✅ Thử ngay, rẻ</td></tr>
+                <tr><td>UDP (Huang 2020)</td><td>Hiệu chỉnh lệch toạ độ khi flip/resize</td><td>Sửa sai số hệ thống</td><td>Cần train lại nhất quán</td><td>Khi train lại</td></tr>
+                <tr><td>SimCC (RTMPose)</td><td>Phân loại riêng x, y trên lưới mịn</td><td>Chính xác dưới pixel, bỏ được deconv</td><td>Đổi head + loss</td><td>Hướng nâng cấp kiến trúc</td></tr>
+            </table>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.6 · Tự train vs mô hình dựng sẵn <span class="tag ref">THAM KHẢO</span></h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Giải pháp</th><th>Kiểu</th><th>Nhiều người</th><th>Chạy ở đâu</th><th>Ghi chú</th></tr>
+                <tr><td><strong>SkyPose (tự train)</strong></td><td>Top-down heatmap</td><td>✗ (1 người + tracker)</td><td>Server GPU / CPU</td><td>Hiểu &amp; kiểm soát toàn bộ pipeline, đúng yêu cầu môn học</td></tr>
+                <tr><td>MediaPipe Pose (BlazePose)</td><td>Detector + landmark</td><td>✗</td><td>Trình duyệt / mobile</td><td>33 điểm, có độ sâu tương đối; tối ưu cho fitness, webcam</td></tr>
+                <tr><td>MoveNet Lightning / Thunder</td><td>Bottom-up nhẹ (CenterNet)</td><td>Bản MultiPose</td><td>Trình duyệt (TF.js)</td><td>Rất nhanh, 17 khớp COCO</td></tr>
+                <tr><td>RTMPose (MMPose)</td><td>Top-down SimCC</td><td>✓ (kèm detector)</td><td>GPU / CPU / mobile</td><td>Hiện là chuẩn mạnh về tốc độ/chính xác</td></tr>
+                <tr><td>YOLO-pose (Ultralytics)</td><td>One-stage</td><td>✓</td><td>GPU / CPU</td><td>Phát hiện + khớp trong 1 lần chạy</td></tr>
+                <tr><td>OpenPose</td><td>Bottom-up PAF</td><td>✓</td><td>GPU</td><td>Kinh điển, nặng</td></tr>
+            </table>
+        </div>
+        <div class="highlight warning">
+            <strong>Cách so sánh công bằng</strong> (thí nghiệm đề xuất): chạy tất cả trên cùng 500 ảnh ở 10.3 + một video webcam
+            ghi sẵn; chỉ tính 17 khớp COCO chung; đo mean OKS, PCK@0.1 khớp điều khiển, độ rung (jitter) khi đứng yên và độ trễ
+            đầu-cuối trên cùng máy. Mục tiêu không phải “thắng” mô hình công nghiệp mà là <em>định vị</em> model tự train và
+            chỉ ra khoảng cách đến từ đâu (dữ liệu, epoch, kiến trúc hay giải mã).
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.7 · Điều khiển: hình học vs học máy <span class="tag planned">KẾ HOẠCH</span></h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Tiêu chí</th><th>Hình học (đang dùng)</th><th>Phân loại cử chỉ (MLP/GRU trên chuỗi khớp)</th></tr>
+                <tr><td>Dữ liệu cần</td><td>Không</td><td>Vài nghìn đoạn có nhãn, nhiều người chơi</td></tr>
+                <tr><td>Đầu ra</td><td>Liên tục (mức rẽ, lực vỗ)</td><td>Rời rạc (trừ khi làm hồi quy)</td></tr>
+                <tr><td>Giải thích được</td><td>✓ từng công thức</td><td>Hạn chế</td></tr>
+                <tr><td>Cử chỉ phức tạp (xoay người, nhảy)</td><td>Khó viết luật</td><td>✓</td></tr>
+                <tr><td>Thước đo đề xuất</td><td colspan="2">Thời gian hoàn thành 16 cổng, số cổng trượt, tỉ lệ vỗ cánh “ảo” khi người
+                    chơi đứng yên, độ trễ từ lúc vẫy tay đến khi chim bay lên (đo bằng video 60 FPS).</td></tr>
+            </table>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .4rem;">10.8 · Ma trận thí nghiệm còn lại <span class="tag planned">KẾ HOẠCH</span></h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>#</th><th>Thí nghiệm</th><th>Giả thuyết</th><th>Thước đo</th><th>Chi phí ước lượng</th><th>Ưu tiên</th></tr>
+                <tr><td>E1</td><td>Giải mã DARK thay cho ¼ px</td><td>+AP không cần train</td><td>AP, AP75</td><td>&lt; 1 giờ code + 1 phút eval</td><td>P0</td></tr>
+                <tr><td>E2</td><td>ResNet18 train 60 epoch</td><td>AP còn tăng (loss chưa bão hoà)</td><td>AP theo epoch</td><td>~16 giờ Kaggle (chia 2 phiên, có resume)</td><td>P0</td></tr>
+                <tr><td>E3</td><td>ResNet50, 20 epoch</td><td>+AP, vẫn &lt; 6 ms GPU</td><td>AP, latency</td><td>~1,5–2× thời gian R18</td><td>P1</td></tr>
+                <tr><td>E4</td><td>Tắt half-body / random erasing</td><td>Hai augmentation này giúp khung webcam</td><td>PCK điều khiển trên ảnh nửa người</td><td>2 lần train ngắn</td><td>P1</td></tr>
+                <tr><td>E5</td><td>Input 256×192 vs 256×256</td><td>Vuông tốt hơn khi dang tay</td><td>PCK cổ tay khi spread &gt; 3</td><td>1 lần train</td><td>P2</td></tr>
+                <tr><td>E6</td><td>Lưới tham số One-Euro</td><td>Có điểm cân bằng rung/trễ tốt hơn (1; 3)</td><td>Jitter khi đứng yên, trễ khi vẫy</td><td>Video ghi sẵn, chạy offline</td><td>P1</td></tr>
+                <tr><td>E7</td><td>ONNX Runtime / TensorRT FP16</td><td>Giảm độ trễ đầu-cuối</td><td>ms/khung, FPS</td><td>Vài giờ</td><td>P2</td></tr>
+            </table>
+        </div>
+        <div class="highlight">
+            <strong>Quy tắc thí nghiệm:</strong> mỗi lần chỉ đổi 1 yếu tố; cùng tập val, cùng seed; báo cáo tách bạch “GT bbox” và
+            “pipeline thật”; lưu mọi lần chạy vào <code>runs/&lt;tên&gt;/</code> kèm <code>run_info.json</code> (commit, cấu hình, GPU)
+            để tái lập. Chênh lệch nhỏ giữa 2 lần đánh giá cùng checkpoint (61,78 trên Kaggle vs 61,73 trên laptop) đến từ khác
+            phần cứng/thư viện FP16 — chênh lệch &lt; 0,1 AP không nên diễn giải.
+        </div>
+    </section>
+
+    <!-- CHAPTER 11 -->
+    <section id="future">
+        <div class="section-header">
+            <div class="icon" style="background:#dcfce7;color:#15803d;">🚀</div>
+            <div>
+                <div class="section-num">Chapter 11</div>
+                <h2>Hướng Phát Triển</h2>
+            </div>
+        </div>
+
+        <h3 style="margin:.5rem 0 .8rem;">Theo mức ưu tiên (từ kết quả Chapter 10)</h3>
+        <div class="tier-list">
+            <div class="tier-item">
+                <div class="tier-label" style="background:#b91c1c;">P0</div>
+                <div class="tier-content"><strong>Rẻ, lợi ngay</strong><span>Trỏ server sang checkpoint epoch 20 · giải mã DARK ·
+                    train tiếp ResNet18 lên 60 epoch bằng <code>--resume-from</code> · test đơn vị cho decode/affine/controls.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--warning);">P1</div>
+                <div class="tier-content"><strong>Nâng chất lượng model</strong><span>ResNet50 / HRNet-W32 làm teacher →
+                    <em>knowledge distillation</em> về ResNet18 (giữ tốc độ, lấy độ chính xác) · fine-tune trên vài nghìn khung
+                    webcam tự thu (tự gán nhãn bằng teacher + sửa tay) để thu hẹp khoảng cách miền COCO → webcam.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--accent);">P1</div>
+                <div class="tier-content"><strong>Chạy ngay trong trình duyệt</strong><span>Export ONNX → ONNX Runtime Web
+                    (WebGPU, fallback WASM). Bỏ được server, ảnh webcam không rời máy người chơi (riêng tư), triển khai bằng
+                    hosting tĩnh. ResNet18 ~26 FPS trên CPU cho thấy khả thi; cần lượng tử hoá INT8 cho máy yếu.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--primary);">P2</div>
+                <div class="tier-content"><strong>Kiến trúc mới</strong><span>Head SimCC (kiểu RTMPose) bỏ deconv · mô hình thời
+                    gian (đưa heatmap khung trước làm đầu vào phụ) để giảm rung tận gốc thay vì chỉ lọc · nhiều người chơi bằng
+                    detector nhẹ hoặc one-stage.</span></div>
+            </div>
+            <div class="tier-item">
+                <div class="tier-label" style="background:var(--success);">P2</div>
+                <div class="tier-content"><strong>Game &amp; trải nghiệm</strong><span>Hiệu chỉnh cá nhân (học ngưỡng spread/flap
+                    của từng người ở bước calib) · chế độ ngồi (chỉ thân trên) · bảng xếp hạng · nhiều màn chơi · âm thanh ·
+                    chế độ 2 người chia màn hình.</span></div>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>🧠 Mô hình</h3>
+                <ul>
+                    <li>Lịch train dài hơn + EMA trọng số</li>
+                    <li>DARK / UDP; SimCC head</li>
+                    <li>Distillation R50 → R18</li>
+                    <li>Augmentation chuyển động mờ (motion blur) cho cú vẫy tay nhanh</li>
+                    <li>Domain adaptation COCO → webcam</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>⚡ Triển khai</h3>
+                <ul>
+                    <li>ONNX + ONNX Runtime Web (WebGPU/WASM)</li>
+                    <li>TensorRT FP16/INT8 cho server</li>
+                    <li>Docker image + HTTPS (webcam cần HTTPS khi không chạy localhost)</li>
+                    <li>Batch nhiều phiên WebSocket trên 1 GPU</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🔁 MLOps</h3>
+                <ul>
+                    <li>CI: pytest + chạy <code>evaluate.py --limit</code> trên tập nhỏ làm cổng hồi quy</li>
+                    <li>Server đọc model từ <code>runs/</code> mới nhất đạt ngưỡng AP</li>
+                    <li>Theo dõi thí nghiệm (MLflow / W&amp;B) thay cho CSV</li>
+                    <li>Tự động sinh bảng so sánh giữa các run</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="highlight success">
+            <strong>Tầm nhìn:</strong> từ một demo “model chạy trên server” thành <em>trò chơi chạy hoàn toàn trong trình duyệt</em>,
+            model tự train được tinh chỉnh cho miền webcam, có cổng đánh giá tự động mỗi lần đổi model — vẫn giữ được điểm cốt lõi
+            của đồ án là hiểu và kiểm soát toàn bộ chuỗi từ dữ liệu đến hành vi trong game.
+        </div>
+    </section>

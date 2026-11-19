@@ -1,0 +1,5 @@
+$ /usr/bin/python3 /kaggle/working/repo/training/prepare_data.py --split val --workers 64
+val: 6352 người / 2346 ảnh, nguồn ảnh: images.cocodataset.org
+  1000/2346 ảnh, 2654 crop
+  2000/2346 ảnh, 5161 crop
+Xong: 6352 crop -> /tmp/skypose_crops/val_index.npz

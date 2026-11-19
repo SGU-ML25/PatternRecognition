@@ -13,7 +13,8 @@ from model import PoseNet  # noqa: E402
 from pose_utils import (FLIP_INDEX, INPUT_SIZE, KEYPOINTS, decode_heatmaps,  # noqa: E402
                         heatmap_to_input, square_affine, to_tensor_input)
 
-TRACK_KPTS = list(range(13))  # đầu, tay, hông: dùng để đặt vùng cắt khung sau
+TRACK_KPTS = list(range(17))  # cả 17 khớp đặt vùng cắt khung sau: khung dọc thấy chân thì giữ cả chân
+# (khớp chân không tin cậy tự bị loại; thử trên 500 ảnh val: mean OKS 0,591 với 13 khớp -> 0,617 với 17 khớp)
 
 
 class OneEuro:
@@ -100,9 +101,9 @@ class PoseSession:
         if len(good) >= 4 and kp[[5, 6], 2].min() > self.conf_thr:
             lo, hi = kp[good, :2].min(0), kp[good, :2].max(0)
             side = float(np.clip((hi - lo).max() * 1.6, 0.35 * max(h, w), 1.6 * max(h, w)))
-            nb = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, side)
-            # làm mượt vùng cắt để tránh giật
-            self.box = nb if self.box is None else tuple(0.5 * np.array(self.box) + 0.5 * np.array(nb))
+            nb = (float(lo[0] + hi[0]) / 2, float(lo[1] + hi[1]) / 2, side)
+            # làm mượt vùng cắt để tránh giật (giữ kiểu float Python để json.dumps được)
+            self.box = nb if self.box is None else tuple(map(float, 0.5 * np.array(self.box) + 0.5 * np.array(nb)))
         else:
             self.box = None  # mất dấu -> khung sau dùng cả khung hình
         # lọc trong toạ độ chuẩn hoá [0,1] để tham số One-Euro không phụ thuộc độ phân giải

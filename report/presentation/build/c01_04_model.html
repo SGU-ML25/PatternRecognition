@@ -1,0 +1,380 @@
+
+    <!-- CHAPTER 01 -->
+    <section id="data">
+        <div class="section-header">
+            <div class="icon" style="background:#fef3c7;color:#b45309;">🗂️</div>
+            <div>
+                <div class="section-num">Chapter 01</div>
+                <h2>Dữ Liệu COCO-Keypoints &amp; Tiền Xử Lý</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            COCO-Keypoints 2017 là bộ chuẩn của bài toán: mỗi người được gán 17 khớp dạng <code>(x, y, v)</code> với
+            <code>v ∈ {0: không gán, 1: bị che, 2: thấy rõ}</code>. Đồ án <strong>không tải 18 GB
+            <code>train2017.zip</code></strong> — <code>prepare_data.py</code> tải lẻ từng ảnh có người, cắt vùng quanh
+            người rồi bỏ ảnh gốc, nên toàn bộ dữ liệu train chỉ còn các crop JPEG nhỏ.
+        </p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>📦 Tập dữ liệu sau khi lọc</h3>
+                <ul>
+                    <li><strong>Train:</strong> 127.392 người (từ <code>train2017</code>)</li>
+                    <li><strong>Val:</strong> 6.352 người trên 5.000 ảnh <code>val2017</code></li>
+                    <li>Bỏ người <code>iscrowd</code>, người có &lt; 5 khớp được gán, bbox quá nhỏ</li>
+                    <li>17 khớp: mũi, 2 mắt, 2 tai, 2 vai, 2 khuỷu, 2 cổ tay, 2 hông, 2 gối, 2 cổ chân</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>✂️ Cắt vùng người (crop)</h3>
+                <ul>
+                    <li>Hình vuông tâm bbox, cạnh = <code>1,5 × max(w, h)</code></li>
+                    <li>Resize về <strong>320×320</strong> (INTER_AREA khi thu nhỏ), viền đen</li>
+                    <li>Toạ độ khớp quy đổi sang hệ crop bằng cùng ma trận affine</li>
+                    <li>Crop rộng hơn input 256 để augmentation scale/xoay không bị thiếu ảnh</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🗃️ Chỉ mục <code>{split}_index.npz</code></h3>
+                <ul>
+                    <li><code>keypoints (N,17,3)</code> — toạ độ trong crop + visibility</li>
+                    <li><code>center (N,2)</code>, <code>side (N,)</code> — để quy đổi ngược về ảnh gốc khi chấm COCO</li>
+                    <li><code>ann_id</code>, <code>image_id</code>, <code>area</code> — dùng cho OKS</li>
+                    <li>Đọc 1 lần vào RAM, Dataset chỉ còn đọc JPEG</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Đường đi của một mẫu train</h3>
+        <div class="flow">
+            <span class="flow-step">Annotation JSON</span><span class="flow-arrow">→</span>
+            <span class="flow-step">Lọc người hợp lệ</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">Tải ảnh lẻ (16 luồng)</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">Crop 320 + quy đổi khớp</span><span class="flow-arrow">→</span>
+            <span class="flow-step">Augment → input 256</span><span class="flow-arrow">→</span>
+            <span class="flow-step success">Heatmap Gaussian 64×64</span>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Augmentation — mô phỏng khung hình webcam</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Phép biến đổi</th>
+                    <th>Tham số</th>
+                    <th>Mục đích</th>
+                </tr>
+                <tr>
+                    <td><strong>Half-body</strong></td>
+                    <td>p = 0,4 — chỉ lấy khớp 0..12 (đầu, tay, hông), crop 1,5× vùng đó</td>
+                    <td>Webcam thường chỉ thấy nửa người trên → model phải quen với khung hình cắt ngang hông</td>
+                </tr>
+                <tr>
+                    <td>Scale</td>
+                    <td>× U(0,7; 1,35)</td>
+                    <td>Người đứng gần / xa camera</td>
+                </tr>
+                <tr>
+                    <td>Dịch tâm</td>
+                    <td>± 10% cạnh crop</td>
+                    <td>Tracker đặt vùng cắt không hoàn hảo</td>
+                </tr>
+                <tr>
+                    <td>Xoay</td>
+                    <td>± 30°, p = 0,6</td>
+                    <td>Nghiêng người khi rẽ</td>
+                </tr>
+                <tr>
+                    <td>Lật ngang</td>
+                    <td>p = 0,5, đổi chỉ số trái ↔ phải (<code>FLIP_INDEX</code>)</td>
+                    <td>Đối xứng; đồng thời là nền tảng cho flip-test</td>
+                </tr>
+                <tr>
+                    <td>Màu</td>
+                    <td>contrast U(0,6; 1,4), brightness ±30, saturation p = 0,5</td>
+                    <td>Ánh sáng phòng, webcam rẻ</td>
+                </tr>
+                <tr>
+                    <td><strong>Random erasing</strong></td>
+                    <td>p = 0,3, ô 20–90 px màu ngẫu nhiên</td>
+                    <td>Tay ra khỏi khung, bị đồ vật che</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="highlight info">
+            <strong>Tối ưu cho máy ít CPU:</strong> augmentation màu tính trực tiếp trên <code>uint8</code> bằng OpenCV
+            (nhanh hơn ~6 lần so với float32); Dataset trả ảnh <code>uint8</code> (nhẹ hơn 4 lần), việc chuẩn hoá ImageNet
+            làm trên GPU trong <code>normalize_batch()</code>. Nhờ vậy 2×T4 đạt ~146 ảnh/giây mà không nghẽn ở DataLoader.
+        </div>
+    </section>
+
+    <!-- CHAPTER 02 -->
+    <section id="model">
+        <div class="section-header">
+            <div class="icon" style="background:#ede9fe;color:#6d28d9;">🧠</div>
+            <div>
+                <div class="section-num">Chapter 02</div>
+                <h2>Mô Hình SimpleBaseline (Xiao et al., ECCV 2018)</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Pose estimation dạng <strong>top-down, dựa trên heatmap</strong>: biết trước vùng chứa 1 người, model dự đoán
+            cho mỗi khớp một bản đồ xác suất; vị trí đỉnh là toạ độ khớp, giá trị đỉnh là độ tin cậy. SimpleBaseline được
+            chọn vì đơn giản nhất trong các kiến trúc đạt chuẩn — phù hợp để tự cài đặt, tự huấn luyện và giải thích.
+        </p>
+
+        <div class="flow">
+            <span class="flow-step">Ảnh 3×256×256</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">ResNet18 (stride 32) → 512×8×8</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">Deconv ×3 (4×4, s2) + BN + ReLU → 256×64×64</span><span class="flow-arrow">→</span>
+            <span class="flow-step">Conv 1×1 → 17×64×64</span><span class="flow-arrow">→</span>
+            <span class="flow-step success">argmax + ¼ px → 17 × (x, y, conf)</span>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>🎯 Biểu diễn đầu ra: heatmap</h3>
+                <ul>
+                    <li>Mỗi khớp: Gaussian σ = 2 trên lưới 64×64 (stride 4 so với input)</li>
+                    <li>Khớp không gán / rơi ngoài vùng → trọng số 0 trong loss</li>
+                    <li>Giữ thông tin không gian tốt hơn hồi quy toạ độ trực tiếp → hội tụ nhanh, ổn định</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📉 Hàm mất mát</h3>
+                <ul>
+                    <li>MSE có trọng số visibility: <code>½·mean((Ĥ − H)²·w)</code></li>
+                    <li>Tính ở FP32 dù forward ở FP16 (tránh underflow — loss ~3,6·10⁻⁴)</li>
+                    <li>Lớp deconv &amp; head khởi tạo N(0; 0,001) như bài báo gốc</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🔍 Giải mã &amp; flip-test</h3>
+                <ul>
+                    <li>argmax, dịch ¼ pixel về phía lân cận lớn hơn (giảm sai số lượng tử hoá)</li>
+                    <li>Flip-test: chạy thêm ảnh lật, lật heatmap lại, đổi trái↔phải, dịch 1 px rồi lấy trung bình</li>
+                    <li>Toạ độ heatmap × 4 → input 256 → ma trận affine ngược → pixel ảnh gốc</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Các backbone đã cài đặt (<code>model.py</code>)</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Backbone</th>
+                    <th>Tham số (cả head)</th>
+                    <th>Khởi tạo</th>
+                    <th>Vai trò trong đồ án</th>
+                </tr>
+                <tr>
+                    <td><strong>ResNet18</strong></td>
+                    <td>15,4M</td>
+                    <td>ImageNet1K_V1</td>
+                    <td>✅ Model chính — nhẹ, nhanh, đủ chính xác cho 8 khớp thân trên</td>
+                </tr>
+                <tr>
+                    <td>ResNet34</td>
+                    <td>25,5M</td>
+                    <td>ImageNet1K_V1</td>
+                    <td>Phương án trung gian (đã cài, chưa train đầy đủ)</td>
+                </tr>
+                <tr>
+                    <td>ResNet50</td>
+                    <td>34,0M</td>
+                    <td>ImageNet1K_V2</td>
+                    <td>Phương án so sánh độ chính xác (bài báo gốc: ~70 AP)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="highlight">
+            <strong>Vì sao input vuông 256×256</strong> (bài báo dùng 256×192)? Khi người chơi dang ngang 2 tay, vùng thân
+            trên rộng gần bằng cao — khung dọc 4:3 sẽ cắt mất cổ tay, đúng các khớp quan trọng nhất cho điều khiển.
+        </div>
+    </section>
+
+    <!-- CHAPTER 03 -->
+    <section id="training">
+        <div class="section-header">
+            <div class="icon" style="background:#dcfce7;color:#15803d;">🏋️</div>
+            <div>
+                <div class="section-num">Chapter 03</div>
+                <h2>Huấn Luyện: Laptop → Kaggle</h2>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>⚙️ Cấu hình huấn luyện</h3>
+                <ul>
+                    <li><strong>AdamW</strong>, lr 1e-3, weight decay 1e-4</li>
+                    <li>Warm-up tuyến tính 995 iter → <strong>cosine decay</strong> về 0</li>
+                    <li><strong>AMP FP16</strong> + GradScaler, <code>channels_last</code>, cuDNN benchmark</li>
+                    <li>Batch 128 trên 2×T4 (DataParallel) — 995 iter/epoch</li>
+                    <li>Đánh giá COCO AP mỗi epoch, lưu <code>best.pt</code> theo AP</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🧾 Khả năng phục hồi &amp; truy vết</h3>
+                <ul>
+                    <li><code>last.pt</code> giữ cả optimizer, scheduler, scaler → <code>--resume</code> đúng lịch lr</li>
+                    <li><code>train.log</code> có timestamp, ghi cả lỗi / Ctrl+C trước khi thoát</li>
+                    <li><code>train_log.csv</code>: loss, lr, AP, AP50, AP75, AR, PCK điều khiển, phút/epoch</li>
+                    <li><code>run_info.json</code>: commit git, GPU, cấu hình, thời gian từng bước</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>☁️ Pipeline Kaggle (6 bước)</h3>
+                <ul>
+                    <li>01 setup: clone repo + cài <code>requirements-train.txt</code></li>
+                    <li>02/03 prepare val/train: 0,2 + 5,4 phút</li>
+                    <li>04 train: <strong>320 phút</strong> (20 epoch × ~16 phút)</li>
+                    <li>05 evaluate · 06 figures → zip → <code>scripts/import_kaggle_run.py</code> → <code>runs/</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Hai môi trường đã dùng — vì sao phải chuyển lên Kaggle</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Tiêu chí</th>
+                    <th>Laptop RTX A2000 4 GB</th>
+                    <th>Kaggle 2× Tesla T4 16 GB</th>
+                </tr>
+                <tr>
+                    <td>Batch</td>
+                    <td>32</td>
+                    <td>128</td>
+                </tr>
+                <tr>
+                    <td>Thông lượng bền vững</td>
+                    <td>~67 ảnh/s (GPU bị hạ về 20 W do nhiệt, CPU 93–98 °C)</td>
+                    <td>~146 ảnh/s</td>
+                </tr>
+                <tr>
+                    <td>Thời gian / epoch</td>
+                    <td>~31,7 phút</td>
+                    <td>~16,0 phút</td>
+                </tr>
+                <tr>
+                    <td>Đã chạy</td>
+                    <td>3 epoch (lịch 10 epoch), AP 48,3% rồi dừng</td>
+                    <td>20 epoch trọn vẹn, AP 61,8%</td>
+                </tr>
+                <tr>
+                    <td>Bài học</td>
+                    <td colspan="2">Benchmark ngắn đánh giá quá cao tốc độ laptop 4–6 lần; ước lượng thời gian phải dựa trên
+                        thông lượng bền vững. Tách code train khỏi notebook (notebook chỉ gọi <code>training/*.py</code>)
+                        giúp chuyển môi trường không phải sửa code.</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Diễn biến huấn luyện (run <code>20261002-1405_resnet18_kaggle</code>)</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Epoch</th>
+                    <th>Train loss (×10⁻⁴)</th>
+                    <th>lr</th>
+                    <th>AP</th>
+                    <th>AP50</th>
+                    <th>AP75</th>
+                    <th>AR</th>
+                    <th>PCK@0.1 điều khiển</th>
+                </tr>
+                <tr><td>1</td><td>6,54</td><td>9,9e-4</td><td>35,6</td><td>71,0</td><td>32,0</td><td>42,1</td><td>74,4</td></tr>
+                <tr><td>2</td><td>5,29</td><td>9,8e-4</td><td>43,9</td><td>77,1</td><td>44,4</td><td>49,2</td><td>78,5</td></tr>
+                <tr><td>4</td><td>4,68</td><td>9,0e-4</td><td>49,8</td><td>80,4</td><td>53,7</td><td>54,7</td><td>82,0</td></tr>
+                <tr><td>6</td><td>4,39</td><td>7,9e-4</td><td>52,8</td><td>81,8</td><td>57,3</td><td>57,3</td><td>83,7</td></tr>
+                <tr><td>8</td><td>4,19</td><td>6,5e-4</td><td>54,9</td><td>82,8</td><td>61,1</td><td>59,1</td><td>84,6</td></tr>
+                <tr><td>10</td><td>4,01</td><td>5,0e-4</td><td>57,5</td><td>84,0</td><td>63,5</td><td>61,5</td><td>85,7</td></tr>
+                <tr><td>12</td><td>3,86</td><td>3,5e-4</td><td>59,3</td><td>85,2</td><td>65,9</td><td>63,1</td><td>86,7</td></tr>
+                <tr><td>14</td><td>3,74</td><td>2,1e-4</td><td>60,6</td><td>86,2</td><td>67,2</td><td>64,4</td><td>87,4</td></tr>
+                <tr><td>16</td><td>3,64</td><td>9,5e-5</td><td>61,2</td><td>86,2</td><td>68,3</td><td>65,1</td><td>87,9</td></tr>
+                <tr><td>18</td><td>3,59</td><td>2,4e-5</td><td>61,7</td><td>86,3</td><td>69,2</td><td>65,5</td><td>88,1</td></tr>
+                <tr><td><strong>20</strong></td><td><strong>3,56</strong></td><td>0</td><td><strong>61,8</strong></td><td><strong>86,3</strong></td><td><strong>69,3</strong></td><td><strong>65,6</strong></td><td><strong>88,0</strong></td></tr>
+            </table>
+        </div>
+        <div class="fig-grid">
+            <figure class="fig"><img src="{{FIG:train_loss}}" alt="Train loss theo epoch"><figcaption>Train loss giảm
+                đều, chưa bão hoà hẳn ở epoch 20</figcaption></figure>
+            <figure class="fig"><img src="{{FIG:lr}}" alt="Learning rate"><figcaption>Lịch learning rate: warm-up rồi
+                cosine về 0</figcaption></figure>
+        </div>
+
+        <div class="highlight success">
+            <strong>Nhận xét:</strong> AP tăng nhanh 10 epoch đầu (35,6 → 57,5) rồi chậm lại khi lr giảm; 4 epoch cuối chỉ
+            thêm +0,6 AP. Loss vẫn giảm nhẹ → train dài hơn (SimpleBaseline gốc dùng 140 epoch) và backbone lớn hơn là
+            hai đòn bẩy rõ nhất để tăng AP — xem Chapter 10–11.
+        </div>
+    </section>
+
+    <!-- CHAPTER 04 -->
+    <section id="results">
+        <div class="section-header">
+            <div class="icon" style="background:#e0f2fe;color:var(--primary);">📊</div>
+            <div>
+                <div class="section-num">Chapter 04</div>
+                <h2>Kết Quả Đánh Giá Trên COCO val2017</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Giao thức chuẩn COCO: dùng <strong>bbox ground-truth</strong> để cắt người (tách bạch chất lượng pose khỏi chất
+            lượng detector), chấm bằng <code>pycocotools</code> với OKS (Object Keypoint Similarity). Bổ sung PCK —
+            khớp đúng nếu sai số &lt; α × kích thước người — tính riêng cho <strong>8 khớp điều khiển</strong> (vai, khuỷu,
+            cổ tay, hông) vì đó là những khớp game thực sự dùng.
+        </p>
+
+        <div class="stats-row">
+            <div class="stat-card"><div class="value">61,8</div><div class="label">AP (OKS 0,50:0,95)</div></div>
+            <div class="stat-card"><div class="value">86,3</div><div class="label">AP50</div></div>
+            <div class="stat-card"><div class="value">69,3</div><div class="label">AP75</div></div>
+            <div class="stat-card"><div class="value">59,5 / 65,5</div><div class="label">AP người cỡ vừa / lớn</div></div>
+            <div class="stat-card"><div class="value">65,6</div><div class="label">AR</div></div>
+            <div class="stat-card"><div class="value">94,5</div><div class="label">PCK@0.2 khớp điều khiển</div></div>
+        </div>
+
+        <div class="fig-grid">
+            <figure class="fig"><img src="{{FIG:val_ap_breakdown}}" alt="AP theo ngưỡng OKS"><figcaption>AP, AP50, AP75
+                theo epoch</figcaption></figure>
+            <figure class="fig"><img src="{{FIG:pck_curve}}" alt="PCK curve"><figcaption>PCK theo ngưỡng α</figcaption>
+            </figure>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">PCK theo từng khớp</h3>
+        <div class="fig-grid one">
+            <figure class="fig"><img src="{{FIG:pck_per_joint}}" alt="PCK@0.1 từng khớp"><figcaption>PCK@0.1 — xanh là
+                khớp dùng để điều khiển</figcaption></figure>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Nhóm khớp</th>
+                    <th>PCK@0.05</th>
+                    <th>PCK@0.1</th>
+                    <th>PCK@0.2</th>
+                    <th>Nhận xét</th>
+                </tr>
+                <tr><td>Mặt (mũi, mắt, tai)</td><td>93–96</td><td>96–97</td><td>~98</td><td>Đặc trưng rõ, ít bị che</td></tr>
+                <tr><td>Vai</td><td>80–81</td><td>91–92</td><td>96</td><td>Mốc chuẩn hoá S của điều khiển — rất ổn định</td></tr>
+                <tr><td>Khuỷu</td><td>77</td><td>89</td><td>95</td><td>Fallback khi không thấy cổ tay</td></tr>
+                <tr><td>Cổ tay</td><td>72–74</td><td>85–86</td><td>91–92</td><td>Khớp điều khiển chính nhưng khó nhất ở thân trên (nhỏ, chuyển động nhanh, hay bị che)</td></tr>
+                <tr><td>Hông</td><td>61–62</td><td>84–85</td><td>95</td><td>Ranh giới mơ hồ dưới áo → PCK chặt (α = 0,05) thấp nhất, nhưng nới α thì bắt kịp</td></tr>
+                <tr><td>Gối, cổ chân</td><td>70–72</td><td>82–84</td><td>90–92</td><td>Không dùng cho điều khiển</td></tr>
+            </table>
+        </div>
+
+        <div class="highlight warning">
+            <strong>Đọc kết quả đúng cách:</strong> AP 61,8 thấp hơn SimpleBaseline-ResNet50 gốc (~70,4 AP với 140 epoch,
+            input 256×192, detector bbox) — chênh lệch chủ yếu do backbone nhỏ hơn và lịch train ngắn hơn 7 lần, không phải
+            do lỗi cài đặt. Với mục tiêu điều khiển game, chỉ số quan trọng hơn là <strong>PCK@0.1 của 8 khớp điều khiển =
+            88,0%</strong> và độ trễ ~3 ms — đủ cho thời gian thực.
+        </div>
+    </section>

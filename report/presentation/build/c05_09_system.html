@@ -1,0 +1,313 @@
+
+    <!-- CHAPTER 05 -->
+    <section id="inference">
+        <div class="section-header">
+            <div class="icon" style="background:#fce7f3;color:#be185d;">🎯</div>
+            <div>
+                <div class="section-num">Chapter 05</div>
+                <h2>Suy Luận Thời Gian Thực: Tracker + Flip-Test + One-Euro</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Model là top-down nên cần biết “người ở đâu” trước khi chạy. Thay vì thêm một mô hình phát hiện người (detector),
+            <code>PoseSession</code> dùng chính khung xương của khung hình trước để đặt vùng cắt cho khung hình sau — một
+            <strong>tracker tự hồi tiếp</strong>, chi phí gần như bằng 0.
+        </p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>1️⃣ Vùng cắt (crop tracker)</h3>
+                <ul>
+                    <li>Chưa có người → crop vuông bao cả khung hình</li>
+                    <li>Có ≥ 4 khớp tin cậy (xét cả 17 khớp) <em>và</em> thấy 2 vai → crop = bbox khớp × 1,6 — khung dọc thấy chân thì vùng cắt giữ luôn chân</li>
+                    <li>Cạnh crop kẹp trong [0,35; 1,6] × cạnh lớn của ảnh</li>
+                    <li>Làm mượt 50/50 với vùng cũ để khung không giật; mất dấu → quay về cả khung hình</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>2️⃣ Model trên GPU</h3>
+                <ul>
+                    <li>FP16 + <code>channels_last</code>, warm-up khi khởi động</li>
+                    <li>Flip-test gộp vào 1 batch 2 ảnh (gốc + lật)</li>
+                    <li>Giải mã heatmap → affine ngược về pixel ảnh gốc</li>
+                    <li>~2,1 ms/lượt (batch 2 có flip) trên RTX A2000 laptop — chỉ tính model</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>3️⃣ Lọc One-Euro (Casiez 2012)</h3>
+                <ul>
+                    <li>Mỗi khớp một bộ lọc, trong toạ độ chuẩn hoá [0,1]</li>
+                    <li>Tần số cắt thích nghi: <code>f = min_cutoff + β·|ẋ|</code></li>
+                    <li>Đứng yên → lọc mạnh, hết rung; vẫy nhanh → lọc nhẹ, ít trễ</li>
+                    <li>Tham số: <code>min_cutoff = 1</code>, <code>β = 3</code>, <code>d_cutoff = 1</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="code-block"><span class="comment"># server/pose_engine.py — một bước của PoseSession.process()</span>
+box = <span class="keyword">self</span>.box <span class="keyword">or</span> <span class="fn">full_box</span>(h, w)                  <span class="comment"># (cx, cy, side)</span>
+kp  = engine.<span class="fn">predict_crop</span>(img, box[:<span class="number">2</span>], box[<span class="number">2</span>])        <span class="comment"># (17, 3): x, y, conf</span>
+good = [j <span class="keyword">for</span> j <span class="keyword">in</span> <span class="fn">range</span>(<span class="number">13</span>) <span class="keyword">if</span> kp[j, <span class="number">2</span>] &gt; <span class="number">0.3</span>]
+<span class="keyword">if</span> <span class="fn">len</span>(good) &gt;= <span class="number">4</span> <span class="keyword">and</span> kp[[<span class="number">5</span>, <span class="number">6</span>], <span class="number">2</span>].<span class="fn">min</span>() &gt; <span class="number">0.3</span>:   <span class="comment"># thấy 2 vai</span>
+    nb = <span class="fn">square_around</span>(kp[good], scale=<span class="number">1.6</span>)
+    <span class="keyword">self</span>.box = nb <span class="keyword">if</span> <span class="keyword">self</span>.box <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">else</span> <span class="number">0.5</span> * <span class="keyword">self</span>.box + <span class="number">0.5</span> * nb
+<span class="keyword">else</span>:
+    <span class="keyword">self</span>.box = <span class="keyword">None</span>                                    <span class="comment"># mất dấu → khung sau dùng cả ảnh</span>
+out = [<span class="fn">one_euro</span>[j](kp[j, :<span class="number">2</span>] / scale, t) * scale <span class="keyword">for</span> j <span class="keyword">in</span> <span class="fn">range</span>(<span class="number">17</span>)]</div>
+
+        <div class="highlight info">
+            <strong>Hệ quả quan trọng (đo ở Chapter 10):</strong> chạy model trên cả khung hình (1 lượt) cho mean OKS 0,547;
+            cắt lại quanh người rồi chạy lượt 2 tăng lên 0,617 (+13%). Tracker chính là “lượt 2” được trải qua các khung
+            hình liên tiếp — nên trong game, độ chính xác thực tế gần với kịch bản 2 lượt mà không tốn thêm thời gian.
+        </div>
+    </section>
+
+    <!-- CHAPTER 06 -->
+    <section id="controls">
+        <div class="section-header">
+            <div class="icon" style="background:#fef3c7;color:#b45309;">📐</div>
+            <div>
+                <div class="section-num">Chapter 06</div>
+                <h2>Điều Khiển Bằng Toán (<code>controls.py</code>)</h2>
+            </div>
+        </div>
+
+        <p style="margin-bottom:1rem;color:var(--text-secondary);">
+            Mọi khoảng cách chia cho <strong>độ rộng vai S</strong> — người chơi đứng xa hay gần camera đều cho cùng một
+            lệnh. Đầu mút cánh = cổ tay, nếu không thấy thì lùi về khuỷu tay. Toạ độ ảnh: x sang phải, y xuống dưới,
+            ảnh không lật gương.
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Lệnh</th>
+                    <th>Công thức</th>
+                    <th>Miền giá trị</th>
+                    <th>Động tác người chơi</th>
+                </tr>
+                <tr>
+                    <td><strong>bank</strong> (rẽ)</td>
+                    <td><code>atan2(y<sub>L</sub> − y<sub>R</sub>, x<sub>L</sub> − x<sub>R</sub>) / 40°</code></td>
+                    <td>[−1, 1]</td>
+                    <td>Nghiêng 2 tay như cánh máy bay; 40° là rẽ hết cỡ</td>
+                </tr>
+                <tr>
+                    <td><strong>spread</strong></td>
+                    <td><code>|x<sub>L</sub> − x<sub>R</sub>| / S</code></td>
+                    <td>≈ 1 (khép) … 4–5 (dang hết)</td>
+                    <td>Dùng cho hiệu chỉnh (&gt; 3,0) và điều kiện vỗ cánh</td>
+                </tr>
+                <tr>
+                    <td><strong>flap</strong> (vỗ cánh)</td>
+                    <td><code>v = −Δelev / Δt</code> trên 8 mẫu gần nhất;
+                        <code>flap = clamp((v − 1)/4)</code> nếu spread &gt; 1,8; giữ xung <code>max(target, 0,85·flap)</code></td>
+                    <td>[0, 1]</td>
+                    <td>Vẫy mạnh 2 tay xuống (chỉ tính nhịp đập xuống)</td>
+                </tr>
+                <tr>
+                    <td><strong>dive</strong> (bổ nhào)</td>
+                    <td><code>clamp((2,2 − spread)/1,2) · clamp(below/0,5)</code></td>
+                    <td>[0, 1]</td>
+                    <td>Khép tay sát người và thấp hơn vai</td>
+                </tr>
+                <tr>
+                    <td>wing_left / right</td>
+                    <td><code>atan2(y<sub>vai</sub> − y<sub>tay</sub>, |x<sub>tay</sub> − x<sub>vai</sub>|)</code></td>
+                    <td>radian</td>
+                    <td>Cánh chim 3D bắt chước góc tay người chơi</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>✅ Vì sao chọn hình học thay vì train bộ phân loại cử chỉ</h3>
+                <ul>
+                    <li>Lệnh là <strong>giá trị liên tục</strong> (rẽ nhiều/ít), phân loại rời rạc sẽ giật</li>
+                    <li>Không cần thu thập &amp; gán nhãn dữ liệu cử chỉ</li>
+                    <li>Giải thích được, chỉnh được bằng 1 hằng số</li>
+                    <li>Bất biến với khoảng cách nhờ chuẩn hoá S</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>⚠️ Giới hạn đã biết</h3>
+                <ul>
+                    <li>Ngưỡng (1,8; 2,2; 40°…) chọn tay, chưa tối ưu theo người chơi</li>
+                    <li>Không phân biệt “vỗ cánh” với “hạ tay để nghỉ” nếu hạ nhanh</li>
+                    <li>Cần thấy 2 vai — xoay nghiêng người quá nhiều sẽ mất lệnh</li>
+                    <li>Đánh giá định lượng (độ trễ lệnh, tỉ lệ nhận nhầm) — xem Chapter 10</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAPTER 07 -->
+    <section id="api">
+        <div class="section-header">
+            <div class="icon" style="background:#dcfce7;color:#15803d;">🌐</div>
+            <div>
+                <div class="section-num">Chapter 07</div>
+                <h2>API Server (FastAPI)</h2>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Vào</th>
+                    <th>Ra</th>
+                    <th>Dùng cho</th>
+                </tr>
+                <tr>
+                    <td><code>POST /api/predict</code></td>
+                    <td>file ảnh</td>
+                    <td>JSON: 17 khớp (x, y chuẩn hoá [0,1], score) + lệnh điều khiển + latency</td>
+                    <td>Demo qua Swagger, tích hợp bên ngoài</td>
+                </tr>
+                <tr>
+                    <td><code>POST /api/predict/image</code></td>
+                    <td>file ảnh, <code>min_score</code></td>
+                    <td>JPEG có vẽ khung xương</td>
+                    <td>Kiểm tra trực quan nhanh</td>
+                </tr>
+                <tr>
+                    <td><code>WS /ws/pose</code></td>
+                    <td>luồng JPEG 360×480 khung dọc (binary)</td>
+                    <td>JSON: keypoints, box, control, latency_ms</td>
+                    <td>Game (mỗi kết nối có PoseSession + FlightControls riêng)</td>
+                </tr>
+                <tr>
+                    <td><code>GET /api/model/info</code>, <code>/api/health</code></td>
+                    <td>—</td>
+                    <td>backbone, epoch, COCO AP, thiết bị, flip-test</td>
+                    <td>Menu game hiển thị model đang chạy</td>
+                </tr>
+                <tr>
+                    <td><code>GET /</code></td>
+                    <td>—</td>
+                    <td>Static files <code>web/</code></td>
+                    <td>Phục vụ luôn game — chỉ 1 tiến trình</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>🔁 Giao thức stop-and-wait</h3>
+                <p>Client chỉ gửi khung tiếp theo khi đã nhận kết quả khung trước. Không có hàng đợi dồn ứ → độ trễ không
+                    tăng dần theo thời gian; FPS tự thích nghi với tốc độ GPU + mạng.</p>
+            </div>
+            <div class="card">
+                <h3>🧍 Trạng thái theo phiên</h3>
+                <p>Tracker và bộ lọc là trạng thái riêng của từng người chơi (từng WebSocket); model dùng chung. REST
+                    <code>/predict</code> tạo phiên mới mỗi lần nên không có hiệu ứng lọc.</p>
+            </div>
+            <div class="card">
+                <h3>🛠️ Sửa lỗi đã gặp</h3>
+                <p>Toạ độ box là <code>numpy.float32</code> → <code>json.dumps</code> lỗi giữa chừng làm WebSocket đóng
+                    âm thầm. Đã ép kiểu <code>float</code> và client báo “Mất kết nối…” khi socket đóng.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAPTER 08 -->
+    <section id="game">
+        <div class="section-header">
+            <div class="icon" style="background:#e0e7ff;color:#4338ca;">🎮</div>
+            <div>
+                <div class="section-num">Chapter 08</div>
+                <h2>Web Game 3D (Three.js)</h2>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>🌄 Thế giới</h3>
+                <ul>
+                    <li>Địa hình low-poly sinh từ value noise, bản đồ 5.200 m</li>
+                    <li>Cây instanced, mây, bầu trời đêm, vệt gió theo tốc độ</li>
+                    <li>16 cổng (gate) dọc đường bay, mũi tên chỉ hướng + khoảng cách</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🕹️ Luồng chơi</h3>
+                <ul>
+                    <li>Menu → <strong>hiệu chỉnh</strong>: dang tay (spread &gt; 3) giữ 1,2 s</li>
+                    <li>Đếm ngược 3 → bay → qua 16 cổng → về đích, hiện thời gian</li>
+                    <li>Mất người &gt; 0,8 s → cảnh báo + tự lái (autopilot) giữ độ cao</li>
+                    <li>Bàn phím dự phòng: ← → rẽ, Space vỗ cánh, ↓ bổ nhào</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>🪶 Vật lý bay</h3>
+                <ul>
+                    <li>roll → yaw: <code>yaw += sin(roll)·1,25·dt</code></li>
+                    <li>Lượn chìm −2,2 m/s; vỗ cánh <code>+30·flap</code>; bổ nhào −22 m/s</li>
+                    <li>Tốc độ chuẩn 26 m/s, bổ nhào +22, leo cao chậm lại</li>
+                    <li>Mọi lệnh làm mượt bằng <code>1 − e<sup>−k·dt</sup></code> (độc lập FPS)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="flow">
+            <span class="flow-step">menu</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">calib (dang tay 1,2 s)</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">countdown 3 s</span><span class="flow-arrow">→</span>
+            <span class="flow-step success">play (16 gate)</span><span class="flow-arrow">→</span>
+            <span class="flow-step">end · Chơi lại</span>
+        </div>
+        <div class="highlight">
+            <strong>Khung webcam dọc 3:4</strong> (lật gương bằng CSS, vẽ khung xương cả 17 khớp) đặt cột bên trái cao hết
+            màn hình, game chiếm phần còn lại bên phải; màn hình dọc/hẹp thì xếp webcam trên, game dưới. Khung dọc
+            thấy được cả hông–gối–cổ chân thay vì bị cắt ngang ngực như khung ngang; <code>?cam=ngang</code> trả lại khung
+            4:3 cũ. Thẻ calib nằm trên phần game để không che chân. HUD hiển thị số cổng, thời gian, độ cao, thanh đo rẽ/vỗ cánh/bổ nhào và
+            <code>pose FPS · model ms · RTT ms</code> để quan sát hiệu năng trực tiếp.
+        </div>
+    </section>
+
+    <!-- CHAPTER 09 -->
+    <section id="flow">
+        <div class="section-header">
+            <div class="icon" style="background:#e0f2fe;color:var(--primary);">🔄</div>
+            <div>
+                <div class="section-num">Chapter 09</div>
+                <h2>Luồng End-to-End: Từ Dữ Liệu Đến Cú Vỗ Cánh</h2>
+            </div>
+        </div>
+
+        <h3 style="margin:.5rem 0 .8rem;">Vòng đời offline (một lần)</h3>
+        <div class="flow">
+            <span class="flow-step">COCO JSON</span><span class="flow-arrow">→</span>
+            <span class="flow-step">prepare_data</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">train (Kaggle)</span><span class="flow-arrow">→</span>
+            <span class="flow-step alt">evaluate + figures</span><span class="flow-arrow">→</span>
+            <span class="flow-step">zip → runs/</span><span class="flow-arrow">→</span>
+            <span class="flow-step success">best.pt → server</span>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Vòng lặp online (mỗi khung hình)</h3>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Bước</th>
+                    <th>Nơi chạy</th>
+                    <th>Ước lượng thời gian</th>
+                </tr>
+                <tr><td>1</td><td>Chụp video 1280×960 → cắt giữa 3:4 → canvas 360×480 → JPEG q = 0,8</td><td>Trình duyệt</td><td>~2–5 ms</td></tr>
+                <tr><td>2</td><td>Gửi binary qua WebSocket</td><td>localhost</td><td>&lt; 1 ms</td></tr>
+                <tr><td>3</td><td>Giải mã JPEG, warpAffine về 256×256</td><td>Server CPU</td><td>~1–2 ms</td></tr>
+                <tr><td>4</td><td>Model FP16 + flip-test (batch 2)</td><td>GPU</td><td>~2,1–2,3 ms (A2000) · 3,3 ms (T4)</td></tr>
+                <tr><td>5</td><td>Giải mã heatmap, affine ngược, One-Euro, controls</td><td>Server CPU</td><td>~1–2 ms</td></tr>
+                <tr><td>6</td><td>Trả JSON → cập nhật lệnh, vẽ khung xương</td><td>Trình duyệt</td><td>&lt; 1 ms</td></tr>
+                <tr><td>7</td><td>Vật lý + render Three.js ở tần số màn hình</td><td>Trình duyệt (GPU)</td><td>độc lập với vòng pose</td></tr>
+            </table>
+        </div>
+        <p style="color:var(--text-secondary);font-size:.9rem;">
+            Đo trong notebook: một lượt <code>predict_crop</code> đầy đủ (gồm tiền/hậu xử lý, flip-test) ≈ 5,4 ms trên RTX A2000
+            → trần lý thuyết ~180 lượt/giây; thực tế bị giới hạn bởi webcam 30 FPS. Số RTT thực tế hiển thị trên HUD.
+        </p>
+    </section>

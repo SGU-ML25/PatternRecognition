@@ -1,0 +1,98 @@
+{
+  "run_name": "20261002-1405_resnet18_kaggle",
+  "started": "2026-10-02T14:05:46",
+  "status": "success",
+  "platform": "kaggle",
+  "python": "3.12.13",
+  "config": {
+    "repo_url": "https://github.com/SGU-ML25/PatternRecognition.git",
+    "branch": "main",
+    "backbone": "resnet18",
+    "epochs": 20,
+    "batch_size": 128,
+    "resume_from": null,
+    "smoke_test": false
+  },
+  "steps": [
+    {
+      "step": "01_setup",
+      "cmd": "git clone --depth 1 --branch main https://github.com/SGU-ML25/PatternRecognition.git /kaggle/working/repo",
+      "log": "logs/01_setup.log",
+      "started": "2026-10-02T14:05:46",
+      "exit_code": 0,
+      "minutes": 0.01,
+      "ok": true
+    },
+    {
+      "step": "01_setup",
+      "cmd": "/usr/bin/python3 -m pip install -q -r /kaggle/working/repo/requirements-train.txt",
+      "log": "logs/01_setup.log",
+      "started": "2026-10-02T14:05:47",
+      "exit_code": 0,
+      "minutes": 0.07,
+      "ok": true
+    },
+    {
+      "step": "02_prepare_val",
+      "cmd": "/usr/bin/python3 /kaggle/working/repo/training/prepare_data.py --split val --workers 64",
+      "log": "logs/02_prepare_val.log",
+      "started": "2026-10-02T14:06:02",
+      "exit_code": 0,
+      "minutes": 0.24,
+      "ok": true
+    },
+    {
+      "step": "03_prepare_train",
+      "cmd": "/usr/bin/python3 /kaggle/working/repo/training/prepare_data.py --split train --workers 64",
+      "log": "logs/03_prepare_train.log",
+      "started": "2026-10-02T14:06:17",
+      "exit_code": 0,
+      "minutes": 5.43,
+      "ok": true
+    },
+    {
+      "step": "04_train",
+      "cmd": "/usr/bin/python3 /kaggle/working/repo/training/train.py --backbone resnet18 --epochs 20 --bs 128 --out /kaggle/working/out/resnet18",
+      "log": "logs/04_train.log",
+      "started": "2026-10-02T14:11:42",
+      "exit_code": 0,
+      "minutes": 320.41,
+      "ok": true
+    },
+    {
+      "step": "05_evaluate",
+      "cmd": "/usr/bin/python3 /kaggle/working/repo/training/evaluate.py --ckpt /kaggle/working/out/resnet18/best.pt --out /kaggle/working/out/eval_resnet18.json",
+      "log": "logs/05_evaluate.log",
+      "started": "2026-10-02T19:32:07",
+      "exit_code": 0,
+      "minutes": 0.52,
+      "ok": true
+    },
+    {
+      "step": "06_figures",
+      "cmd": "/usr/bin/python3 /kaggle/working/repo/training/make_figures.py --run resnet18:/kaggle/working/out/resnet18/train.log:/kaggle/working/out/resnet18/train_log.csv --eval /kaggle/working/out/eval_resnet18.json --fig-dir /kaggle/working/out/figures",
+      "log": "logs/06_figures.log",
+      "started": "2026-10-02T19:32:38",
+      "exit_code": 0,
+      "minutes": 0.03,
+      "ok": true
+    }
+  ],
+  "git": {
+    "commit": "c142438d74900f21c0bdf6d3a35887d1cbeab6f1",
+    "message": "update resnet18",
+    "date": "2026-10-02T21:03:54+07:00"
+  },
+  "torch": "2.10.0+cu128",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "data": {
+    "annotations": "/kaggle/working/annotations",
+    "train_images": "images.cocodataset.org",
+    "val_images": "images.cocodataset.org",
+    "crops": "/tmp/skypose_crops"
+  },
+  "finished": "2026-10-02T19:32:40"
+}

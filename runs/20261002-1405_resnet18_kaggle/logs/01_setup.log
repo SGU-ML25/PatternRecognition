@@ -1,0 +1,3 @@
+$ git clone --depth 1 --branch main https://github.com/SGU-ML25/PatternRecognition.git /kaggle/working/repo
+Cloning into '/kaggle/working/repo'...
+$ /usr/bin/python3 -m pip install -q -r /kaggle/working/repo/requirements-train.txt

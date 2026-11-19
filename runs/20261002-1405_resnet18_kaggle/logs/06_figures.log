@@ -1,0 +1,7 @@
+$ /usr/bin/python3 /kaggle/working/repo/training/make_figures.py --run resnet18:/kaggle/working/out/resnet18/train.log:/kaggle/working/out/resnet18/train_log.csv --eval /kaggle/working/out/eval_resnet18.json --fig-dir /kaggle/working/out/figures
+  -> /kaggle/working/out/figures/train_loss.png
+  -> /kaggle/working/out/figures/val_ap.png
+  -> /kaggle/working/out/figures/val_ap_breakdown.png
+  -> /kaggle/working/out/figures/lr.png
+  -> /kaggle/working/out/figures/pck_per_joint.png
+  -> /kaggle/working/out/figures/pck_curve.png

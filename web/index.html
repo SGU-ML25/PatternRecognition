@@ -9,7 +9,7 @@
 </head>
 <body>
   <div id="app">
-    <!-- Nửa trên: webcam + skeleton (giống video) -->
+    <!-- Webcam dọc + skeleton (bên trái; xếp chồng khi màn hình dọc) -->
     <section id="cam-panel">
       <video id="cam" autoplay playsinline muted></video>
       <canvas id="cam-overlay"></canvas>
@@ -17,7 +17,7 @@
       <div id="pose-stats"></div>
     </section>
 
-    <!-- Nửa dưới: game 3D -->
+    <!-- Game 3D -->
     <section id="game-panel">
       <canvas id="game"></canvas>
       <div id="hud">
@@ -59,7 +59,7 @@
   <!-- Hiệu chỉnh: chờ người chơi dang tay -->
   <div id="calib" class="overlay hidden">
     <div class="card small">
-      <h2 id="calib-title">Đứng lùi lại cho thấy nửa người trên</h2>
+      <h2 id="calib-title">Lùi lại cho khung thấy cả người (ít nhất tới hông)</h2>
       <p id="calib-msg">rồi dang ngang 2 tay để bắt đầu</p>
       <div class="progress"><div id="calib-bar"></div></div>
     </div>

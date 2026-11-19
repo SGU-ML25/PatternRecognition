@@ -1,0 +1,170 @@
+
+    <!-- CHAPTER 12 -->
+    <section id="testing">
+        <div class="section-header">
+            <div class="icon" style="background:#fce7f3;color:#be185d;">🧪</div>
+            <div>
+                <div class="section-num">Chapter 12</div>
+                <h2>Kiểm Thử, Đánh Giá Hệ Thống &amp; Rủi Ro</h2>
+            </div>
+        </div>
+
+        <h3 style="margin:.5rem 0 .8rem;">Các tầng kiểm thử</h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Tầng</th><th>Nội dung</th><th>Công cụ / file</th><th>Trạng thái</th></tr>
+                <tr><td>Đánh giá model</td><td>COCO AP/AR, PCK từng khớp, latency</td><td><code>training/evaluate.py</code>, <code>make_figures.py</code></td><td>✅ Mỗi epoch + cuối run</td></tr>
+                <tr><td>Kiểm tra trực quan</td><td>Nạp model, chạy ảnh tĩnh, vẽ khung xương + nhãn COCO, heatmap 17 khớp, OKS từng ảnh, tốc độ</td><td><code>notebooks/test_pose_images.ipynb</code></td><td>✅ Có</td></tr>
+                <tr><td>Thí nghiệm so sánh</td><td>Flip, số lượt cắt, backbone × thiết bị</td><td>Chapter 10</td><td>✅ Một phần (E1–E7 còn lại)</td></tr>
+                <tr><td>Kiểm thử đơn vị</td><td><code>square_affine</code> ↔ nghịch đảo, <code>FLIP_INDEX</code>, <code>decode_heatmaps</code> trên Gaussian đã biết, <code>FlightControls</code> với tư thế tổng hợp</td><td>pytest (đề xuất)</td><td>⏳ Chưa có</td></tr>
+                <tr><td>Tích hợp API</td><td><code>/api/predict</code> với ảnh mẫu, WebSocket gửi/nhận 100 khung, ảnh hỏng → 400</td><td>FastAPI TestClient (đề xuất)</td><td>⏳ Chưa có</td></tr>
+                <tr><td>End-to-end</td><td>Chơi hết 16 cổng bằng webcam và bằng bàn phím; mất người giữa chừng</td><td>Thủ công / video ghi màn hình</td><td>🟡 Cần ghi lại kết quả</td></tr>
+            </table>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Rủi ro &amp; đối sách</h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>Rủi ro</th><th>Ảnh hưởng</th><th>Đối sách</th></tr>
+                <tr><td>Chạy nhầm checkpoint (epoch 3 thay vì 20)</td><td>Giảm 13 AP mà không ai biết</td><td>Menu game hiển thị epoch + AP từ <code>/api/model/info</code>; notebook tự chọn run mới nhất; nên thêm kiểm tra AP tối thiểu khi khởi động</td></tr>
+                <tr><td>GPU laptop hạ xung do nhiệt</td><td>Train chậm 4–6 lần, ước lượng sai thời gian</td><td>Train trên Kaggle; luôn có <code>last.pt</code> để resume</td></tr>
+                <tr><td>Phiên Kaggle bị ngắt (giới hạn ~12 giờ)</td><td>Mất tiến độ</td><td>Log + zip ghi liên tục, <code>--resume-from</code>; chia run dài thành nhiều phiên</td></tr>
+                <tr><td>Nhiều người trong khung hình</td><td>Tracker bám nhầm người</td><td>Hướng dẫn chơi 1 người; dài hạn: detector / chọn người gần tâm nhất</td></tr>
+                <tr><td>Ánh sáng yếu, ngược sáng</td><td>Độ tin cậy cổ tay giảm, mất lệnh</td><td>Augmentation màu; ngưỡng 0,3 + fallback khuỷu tay; autopilot khi mất người</td></tr>
+                <tr><td>Webcam bị chặn khi không phải localhost</td><td>Không chơi được qua mạng LAN</td><td>Dùng HTTPS (reverse proxy) hoặc chạy model trong trình duyệt</td></tr>
+                <tr><td>Rò rỉ hình ảnh người chơi</td><td>Quyền riêng tư</td><td>Server không lưu khung hình; hướng ONNX Web để ảnh không rời máy</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- CHAPTER 13 -->
+    <section id="roadmap">
+        <div class="section-header">
+            <div class="icon" style="background:#fef3c7;color:#b45309;">🗺️</div>
+            <div>
+                <div class="section-num">Chapter 13</div>
+                <h2>Lộ Trình &amp; Nghiệm Thu</h2>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>Giai đoạn 1 — Dữ liệu &amp; pipeline train (✅ 02/10/2026)</h4>
+                <p>Tải annotation + val2017, <code>prepare_data.py</code> tải lẻ ảnh train, Dataset + augmentation, model,
+                    vòng train, chạy thử nhanh (sanity check).</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 2 — Huấn luyện (✅ 02/10/2026)</h4>
+                <p>Laptop dừng ở epoch 3 (AP 48,3) do nhiệt → chuyển Kaggle 2×T4: 20 epoch, 5h20′, AP 61,8. Log/biểu đồ
+                    lưu ở <code>runs/20261002-1405_resnet18_kaggle/</code>.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 3 — Server, điều khiển, game (✅ 02/10, sửa lỗi 12/10/2026)</h4>
+                <p>FastAPI REST + WebSocket, tracker + One-Euro, <code>controls.py</code>, game Three.js với hiệu chỉnh và bàn
+                    phím dự phòng; sửa lỗi WebSocket đóng do kiểu <code>float32</code>.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 4 — Đánh giá &amp; so sánh (🟡 13/10/2026)</h4>
+                <p>Notebook test ảnh; ablation flip-test, 1 vs 2 lượt, backbone × thiết bị (Chapter 10). Còn lại: E1–E7.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 5 — Báo cáo (⏳)</h4>
+                <p>3 báo cáo: tổng quan công việc · nhật ký huấn luyện · đánh giá hiệu năng. Tài liệu này là khung nội dung
+                    chung cho cả 3.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Giai đoạn 6 — Phát triển tiếp (⏳)</h4>
+                <p>P0 → P1 → P2 ở Chapter 11: DARK, train dài hơn, distillation, ONNX trong trình duyệt.</p>
+            </div>
+        </div>
+
+        <h3 style="margin:1.5rem 0 .8rem;">Tiêu chí nghiệm thu</h3>
+        <div class="table-wrap">
+            <table>
+                <tr><th>#</th><th>Tiêu chí</th><th>Mục tiêu</th><th>Thực tế</th><th>Đạt</th></tr>
+                <tr><td>1</td><td>Model tự train, không dùng model pose dựng sẵn</td><td>Bắt buộc</td><td>SimpleBaseline-R18 train từ ImageNet init trên COCO</td><td>✅</td></tr>
+                <tr><td>2</td><td>COCO Keypoint AP (val2017, GT bbox)</td><td>≥ 55</td><td>61,8</td><td>✅</td></tr>
+                <tr><td>3</td><td>PCK@0.1 trên 8 khớp điều khiển</td><td>≥ 85%</td><td>88,0%</td><td>✅</td></tr>
+                <tr><td>4</td><td>Độ trễ model trên GPU</td><td>&lt; 10 ms</td><td>2,1 ms (A2000) · 3,3 ms (T4)</td><td>✅</td></tr>
+                <tr><td>5</td><td>Pose FPS trong game</td><td>≥ 20</td><td>Chưa ghi số đo — đọc từ HUD (<code>pose … FPS</code>) khi demo</td><td>🟡</td></tr>
+                <tr><td>6</td><td>API có tài liệu</td><td>Swagger</td><td><code>/docs</code> với 5 endpoint</td><td>✅</td></tr>
+                <tr><td>7</td><td>Chơi hết 16 cổng bằng tư thế</td><td>Có</td><td>Cần xác nhận bằng video demo</td><td>🟡</td></tr>
+                <tr><td>8</td><td>Tái lập được</td><td>Log + cấu hình + commit</td><td><code>run_info.json</code>, <code>train.log</code>, <code>train_log.csv</code></td><td>✅</td></tr>
+                <tr><td>9</td><td>Kiểm thử tự động</td><td>pytest cho phần lõi</td><td>Chưa có</td><td>⏳</td></tr>
+            </table>
+        </div>
+        <p class="note">Cột “Mục tiêu” là ngưỡng do tài liệu này đề xuất để tự đánh giá, không phải yêu cầu chính thức của môn học — chỉnh lại nếu giảng viên có tiêu chí riêng.</p>
+    </section>
+
+    <!-- APPENDIX -->
+    <section id="stack">
+        <div class="section-header">
+            <div class="icon" style="background:#e0e7ff;color:#4338ca;">🧰</div>
+            <div>
+                <div class="section-num">Phụ lục</div>
+                <h2>Technology Stack &amp; Cách Chạy</h2>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>Học máy</h3>
+                <ul>
+                    <li><strong>PyTorch</strong> + torchvision (ResNet ImageNet weights)</li>
+                    <li>AMP FP16, DataParallel, <code>channels_last</code></li>
+                    <li><strong>OpenCV</strong> — affine, augmentation uint8, JPEG</li>
+                    <li><strong>pycocotools</strong> — COCO OKS-AP</li>
+                    <li>NumPy, matplotlib</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Server &amp; Web</h3>
+                <ul>
+                    <li><strong>FastAPI</strong> + uvicorn — REST, WebSocket, Swagger, static</li>
+                    <li><strong>Three.js</strong> (vendor, không cần CDN)</li>
+                    <li>JavaScript ES modules, Canvas 2D, <code>getUserMedia</code></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Hạ tầng</h3>
+                <ul>
+                    <li>Kaggle Notebook — 2× Tesla T4, sinh từ <code>skypose_train_kaggle.py</code></li>
+                    <li>Laptop RTX A2000 4 GB — dev, chạy game</li>
+                    <li>Git + GitHub (SGU-ML25/PatternRecognition)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="code-block"><span class="comment"># 1. Dữ liệu</span>
+.venv/bin/python training/prepare_data.py --split val
+.venv/bin/python training/prepare_data.py --split train
+
+<span class="comment"># 2. Train + đánh giá (hoặc dùng kaggle/skypose_train_kaggle.ipynb)</span>
+cd training
+../.venv/bin/python train.py --backbone resnet18 --epochs 20 --bs 32 --out ../checkpoints/resnet18
+../.venv/bin/python evaluate.py --ckpt ../checkpoints/resnet18/best.pt
+
+<span class="comment"># 3. Lưu kết quả Kaggle vào runs/</span>
+python scripts/import_kaggle_run.py ~/Downloads/skypose_*.zip
+
+<span class="comment"># 4. Chạy game với model epoch 20</span>
+SKYPOSE_CKPT=runs/20261002-1405_resnet18_kaggle/resnet18/best.pt \
+  .venv/bin/uvicorn server.app:app --port 8765     <span class="comment"># http://localhost:8765</span>
+
+<span class="comment"># 5. Test trên ảnh</span>
+notebooks/test_pose_images.ipynb                 <span class="comment"># ảnh trong test_images/ hoặc COCO val</span></div>
+
+        <div class="highlight success">
+            <strong>Tóm tắt:</strong> SkyPose chứng minh một mô hình ước lượng tư thế <em>tự huấn luyện</em> (ResNet18,
+            61,8 AP, 88% PCK@0.1 trên khớp điều khiển, ~2 ms/khung) đủ tốt để làm tay cầm cho một trò chơi thời gian thực.
+            Các thí nghiệm so sánh chỉ ra đòn bẩy tiếp theo theo thứ tự: train lâu hơn, chiến lược cắt vùng người, rồi đến
+            backbone và giải mã — làm nền cho lộ trình phát triển ở Chapter 11.
+        </div>
+    </section>
+
+    <footer>
+        <p><strong>SkyPose — Điều khiển chim bay bằng tư thế cơ thể</strong></p>
+        <p>Đồ án môn Phân tích &amp; Nhận dạng mẫu · SimpleBaseline-ResNet18 tự train trên COCO-Keypoints · FastAPI · Three.js</p>
+        <p style="margin-top:.5rem;">Số liệu: run <code>20261002-1405_resnet18_kaggle</code> (Kaggle 2×T4) và thí nghiệm bổ sung
+            13/10/2026 trên RTX A2000 Laptop</p>
+    </footer>

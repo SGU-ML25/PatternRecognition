@@ -1,0 +1,156 @@
+$ /usr/bin/python3 /kaggle/working/repo/training/train.py --backbone resnet18 --epochs 20 --bs 128 --out /kaggle/working/out/resnet18
+===== Bắt đầu: /kaggle/working/repo/training/train.py --backbone resnet18 --epochs 20 --bs 128 --out /kaggle/working/out/resnet18
+config: {'backbone': 'resnet18', 'epochs': 20, 'bs': 128, 'lr': 0.001, 'workers': 4, 'limit': 0, 'eval_limit': 0, 'out': '/kaggle/working/out/resnet18', 'resume': False, 'resume_from': None}
+torch 2.10.0+cu128 | GPU: ['Tesla T4', 'Tesla T4']
+Downloading: "https://download.pytorch.org/models/resnet18-f37072fd.pth" to /root/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth
+
+  0%|          | 0.00/44.7M [00:00<?, ?B/s]
+ 19%|█▉        | 8.38M/44.7M [00:00<00:00, 87.4MB/s]
+ 68%|██████▊   | 30.4M/44.7M [00:00<00:00, 171MB/s] 
+100%|██████████| 44.7M/44.7M [00:00<00:00, 181MB/s]
+DataParallel trên 2 GPU
+resnet18: 127392 mẫu train, 995 iter/epoch, 6352 mẫu val
+ep 1 it 0/995 loss 0.001038 lr 2.01e-06 10 img/s
+ep 1 it 200/995 loss 0.000839 lr 2.03e-04 143 img/s
+ep 1 it 400/995 loss 0.000751 lr 4.04e-04 144 img/s
+ep 1 it 600/995 loss 0.000704 lr 6.04e-04 144 img/s
+ep 1 it 800/995 loss 0.000673 lr 8.03e-04 144 img/s
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:424: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 4, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 4, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+== ep 1: loss 0.000654 AP 0.3560 AP50 0.7100 PCK@0.1(control) 0.7443 (16.0 phút)
+   -> best.pt (AP 0.3560)
+ep 2 it 0/995 loss 0.000556 lr 9.94e-04 69 img/s
+ep 2 it 200/995 loss 0.000556 lr 9.91e-04 144 img/s
+ep 2 it 400/995 loss 0.000547 lr 9.88e-04 145 img/s
+ep 2 it 600/995 loss 0.000539 lr 9.84e-04 145 img/s
+ep 2 it 800/995 loss 0.000534 lr 9.80e-04 145 img/s
+== ep 2: loss 0.000529 AP 0.4394 AP50 0.7713 PCK@0.1(control) 0.7846 (16.0 phút)
+   -> best.pt (AP 0.4394)
+ep 3 it 0/995 loss 0.000490 lr 9.76e-04 64 img/s
+ep 3 it 200/995 loss 0.000500 lr 9.70e-04 145 img/s
+ep 3 it 400/995 loss 0.000498 lr 9.65e-04 145 img/s
+ep 3 it 600/995 loss 0.000495 lr 9.59e-04 145 img/s
+ep 3 it 800/995 loss 0.000492 lr 9.52e-04 146 img/s
+== ep 3: loss 0.000491 AP 0.4650 AP50 0.7801 PCK@0.1(control) 0.8000 (15.9 phút)
+   -> best.pt (AP 0.4650)
+ep 4 it 0/995 loss 0.000514 lr 9.45e-04 75 img/s
+ep 4 it 200/995 loss 0.000473 lr 9.38e-04 145 img/s
+ep 4 it 400/995 loss 0.000473 lr 9.30e-04 145 img/s
+ep 4 it 600/995 loss 0.000471 lr 9.22e-04 145 img/s
+ep 4 it 800/995 loss 0.000470 lr 9.13e-04 145 img/s
+== ep 4: loss 0.000468 AP 0.4982 AP50 0.8036 PCK@0.1(control) 0.8200 (16.0 phút)
+   -> best.pt (AP 0.4982)
+ep 5 it 0/995 loss 0.000460 lr 9.04e-04 68 img/s
+ep 5 it 200/995 loss 0.000459 lr 8.95e-04 145 img/s
+ep 5 it 400/995 loss 0.000457 lr 8.85e-04 145 img/s
+ep 5 it 600/995 loss 0.000455 lr 8.75e-04 145 img/s
+ep 5 it 800/995 loss 0.000454 lr 8.64e-04 145 img/s
+== ep 5: loss 0.000453 AP 0.5020 AP50 0.7970 PCK@0.1(control) 0.8192 (16.0 phút)
+   -> best.pt (AP 0.5020)
+ep 6 it 0/995 loss 0.000467 lr 8.53e-04 61 img/s
+ep 6 it 200/995 loss 0.000444 lr 8.42e-04 145 img/s
+ep 6 it 400/995 loss 0.000443 lr 8.30e-04 146 img/s
+ep 6 it 600/995 loss 0.000442 lr 8.18e-04 146 img/s
+ep 6 it 800/995 loss 0.000440 lr 8.06e-04 146 img/s
+== ep 6: loss 0.000439 AP 0.5280 AP50 0.8182 PCK@0.1(control) 0.8370 (15.9 phút)
+   -> best.pt (AP 0.5280)
+ep 7 it 0/995 loss 0.000438 lr 7.94e-04 64 img/s
+ep 7 it 200/995 loss 0.000432 lr 7.81e-04 144 img/s
+ep 7 it 400/995 loss 0.000431 lr 7.68e-04 145 img/s
+ep 7 it 600/995 loss 0.000430 lr 7.54e-04 145 img/s
+ep 7 it 800/995 loss 0.000429 lr 7.41e-04 145 img/s
+== ep 7: loss 0.000428 AP 0.5412 AP50 0.8287 PCK@0.1(control) 0.8422 (16.0 phút)
+   -> best.pt (AP 0.5412)
+ep 8 it 0/995 loss 0.000421 lr 7.27e-04 59 img/s
+ep 8 it 200/995 loss 0.000424 lr 7.13e-04 144 img/s
+ep 8 it 400/995 loss 0.000423 lr 6.98e-04 145 img/s
+ep 8 it 600/995 loss 0.000422 lr 6.84e-04 145 img/s
+ep 8 it 800/995 loss 0.000420 lr 6.69e-04 145 img/s
+== ep 8: loss 0.000419 AP 0.5494 AP50 0.8285 PCK@0.1(control) 0.8456 (16.0 phút)
+   -> best.pt (AP 0.5494)
+ep 9 it 0/995 loss 0.000435 lr 6.54e-04 61 img/s
+ep 9 it 200/995 loss 0.000411 lr 6.39e-04 144 img/s
+ep 9 it 400/995 loss 0.000412 lr 6.24e-04 145 img/s
+ep 9 it 600/995 loss 0.000411 lr 6.09e-04 145 img/s
+ep 9 it 800/995 loss 0.000410 lr 5.93e-04 145 img/s
+== ep 9: loss 0.000410 AP 0.5661 AP50 0.8405 PCK@0.1(control) 0.8552 (16.0 phút)
+   -> best.pt (AP 0.5661)
+ep 10 it 0/995 loss 0.000391 lr 5.78e-04 61 img/s
+ep 10 it 200/995 loss 0.000401 lr 5.63e-04 144 img/s
+ep 10 it 400/995 loss 0.000402 lr 5.47e-04 145 img/s
+ep 10 it 600/995 loss 0.000402 lr 5.31e-04 145 img/s
+ep 10 it 800/995 loss 0.000401 lr 5.15e-04 145 img/s
+== ep 10: loss 0.000401 AP 0.5747 AP50 0.8401 PCK@0.1(control) 0.8573 (16.0 phút)
+   -> best.pt (AP 0.5747)
+ep 11 it 0/995 loss 0.000364 lr 5.00e-04 69 img/s
+ep 11 it 200/995 loss 0.000396 lr 4.84e-04 144 img/s
+ep 11 it 400/995 loss 0.000395 lr 4.68e-04 145 img/s
+ep 11 it 600/995 loss 0.000394 lr 4.53e-04 145 img/s
+ep 11 it 800/995 loss 0.000394 lr 4.37e-04 145 img/s
+== ep 11: loss 0.000393 AP 0.5852 AP50 0.8512 PCK@0.1(control) 0.8632 (16.0 phút)
+   -> best.pt (AP 0.5852)
+ep 12 it 0/995 loss 0.000387 lr 4.22e-04 69 img/s
+ep 12 it 200/995 loss 0.000387 lr 4.06e-04 145 img/s
+ep 12 it 400/995 loss 0.000387 lr 3.91e-04 145 img/s
+ep 12 it 600/995 loss 0.000386 lr 3.75e-04 145 img/s
+ep 12 it 800/995 loss 0.000386 lr 3.60e-04 145 img/s
+== ep 12: loss 0.000386 AP 0.5933 AP50 0.8516 PCK@0.1(control) 0.8666 (16.0 phút)
+   -> best.pt (AP 0.5933)
+ep 13 it 0/995 loss 0.000400 lr 3.45e-04 73 img/s
+ep 13 it 200/995 loss 0.000383 lr 3.30e-04 144 img/s
+ep 13 it 400/995 loss 0.000381 lr 3.16e-04 145 img/s
+ep 13 it 600/995 loss 0.000381 lr 3.01e-04 145 img/s
+ep 13 it 800/995 loss 0.000380 lr 2.87e-04 145 img/s
+== ep 13: loss 0.000379 AP 0.5984 AP50 0.8526 PCK@0.1(control) 0.8691 (16.0 phút)
+   -> best.pt (AP 0.5984)
+ep 14 it 0/995 loss 0.000411 lr 2.73e-04 66 img/s
+ep 14 it 200/995 loss 0.000376 lr 2.59e-04 144 img/s
+ep 14 it 400/995 loss 0.000375 lr 2.45e-04 145 img/s
+ep 14 it 600/995 loss 0.000375 lr 2.32e-04 145 img/s
+ep 14 it 800/995 loss 0.000375 lr 2.19e-04 145 img/s
+== ep 14: loss 0.000374 AP 0.6057 AP50 0.8624 PCK@0.1(control) 0.8744 (16.0 phút)
+   -> best.pt (AP 0.6057)
+ep 15 it 0/995 loss 0.000342 lr 2.06e-04 70 img/s
+ep 15 it 200/995 loss 0.000369 lr 1.93e-04 144 img/s
+ep 15 it 400/995 loss 0.000369 lr 1.81e-04 144 img/s
+ep 15 it 600/995 loss 0.000369 lr 1.69e-04 145 img/s
+ep 15 it 800/995 loss 0.000369 lr 1.57e-04 145 img/s
+== ep 15: loss 0.000369 AP 0.6051 AP50 0.8532 PCK@0.1(control) 0.8734 (16.0 phút)
+ep 16 it 0/995 loss 0.000358 lr 1.46e-04 66 img/s
+ep 16 it 200/995 loss 0.000366 lr 1.35e-04 144 img/s
+ep 16 it 400/995 loss 0.000366 lr 1.25e-04 144 img/s
+ep 16 it 600/995 loss 0.000365 lr 1.15e-04 145 img/s
+ep 16 it 800/995 loss 0.000365 lr 1.05e-04 145 img/s
+== ep 16: loss 0.000364 AP 0.6119 AP50 0.8622 PCK@0.1(control) 0.8788 (16.0 phút)
+   -> best.pt (AP 0.6119)
+ep 17 it 0/995 loss 0.000341 lr 9.54e-05 65 img/s
+ep 17 it 200/995 loss 0.000362 lr 8.64e-05 144 img/s
+ep 17 it 400/995 loss 0.000362 lr 7.77e-05 145 img/s
+ep 17 it 600/995 loss 0.000361 lr 6.95e-05 145 img/s
+ep 17 it 800/995 loss 0.000361 lr 6.17e-05 145 img/s
+== ep 17: loss 0.000361 AP 0.6163 AP50 0.8626 PCK@0.1(control) 0.8791 (16.0 phút)
+   -> best.pt (AP 0.6163)
+ep 18 it 0/995 loss 0.000370 lr 5.45e-05 65 img/s
+ep 18 it 200/995 loss 0.000361 lr 4.75e-05 144 img/s
+ep 18 it 400/995 loss 0.000360 lr 4.10e-05 145 img/s
+ep 18 it 600/995 loss 0.000359 lr 3.50e-05 145 img/s
+ep 18 it 800/995 loss 0.000359 lr 2.94e-05 145 img/s
+== ep 18: loss 0.000359 AP 0.6168 AP50 0.8629 PCK@0.1(control) 0.8807 (16.0 phút)
+   -> best.pt (AP 0.6168)
+ep 19 it 0/995 loss 0.000367 lr 2.44e-05 68 img/s
+ep 19 it 200/995 loss 0.000356 lr 1.98e-05 144 img/s
+ep 19 it 400/995 loss 0.000357 lr 1.56e-05 145 img/s
+ep 19 it 600/995 loss 0.000357 lr 1.20e-05 145 img/s
+ep 19 it 800/995 loss 0.000358 lr 8.78e-06 145 img/s
+== ep 19: loss 0.000357 AP 0.6173 AP50 0.8629 PCK@0.1(control) 0.8808 (16.1 phút)
+   -> best.pt (AP 0.6173)
+ep 20 it 0/995 loss 0.000361 lr 6.14e-06 70 img/s
+ep 20 it 200/995 loss 0.000357 lr 3.92e-06 145 img/s
+ep 20 it 400/995 loss 0.000356 lr 2.20e-06 145 img/s
+ep 20 it 600/995 loss 0.000356 lr 9.67e-07 146 img/s
+ep 20 it 800/995 loss 0.000356 lr 2.34e-07 146 img/s
+== ep 20: loss 0.000356 AP 0.6178 AP50 0.8631 PCK@0.1(control) 0.8803 (16.0 phút)
+   -> best.pt (AP 0.6178)
+===== Xong: best AP 0.6178
