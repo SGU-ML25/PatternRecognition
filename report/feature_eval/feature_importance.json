@@ -1,0 +1,42 @@
+{
+  "synthetic": false,
+  "model": "rf",
+  "base_macro_f1": 0.7908710218441057,
+  "features": {
+    "roll": {
+      "ablation_drop": 0.0057356631057631224,
+      "f1_without": 0.7851353587383426,
+      "permutation_drop": 0.08119943930497786
+    },
+    "spread": {
+      "ablation_drop": 0.007198589835833991,
+      "f1_without": 0.7836724320082717,
+      "permutation_drop": 0.016573363089890103
+    },
+    "wing_l": {
+      "ablation_drop": 0.0007932517306695752,
+      "f1_without": 0.7900777701134362,
+      "permutation_drop": 0.06647950719480977
+    },
+    "wing_r": {
+      "ablation_drop": 0.0007840030385349861,
+      "f1_without": 0.7900870188055708,
+      "permutation_drop": 0.03163633681498368
+    },
+    "below": {
+      "ablation_drop": -0.005937744040366177,
+      "f1_without": 0.7968087658844719,
+      "permutation_drop": -0.005152563380440678
+    },
+    "elev": {
+      "ablation_drop": -0.008162877310248229,
+      "f1_without": 0.799033899154354,
+      "permutation_drop": -0.00292211608909565
+    },
+    "v": {
+      "ablation_drop": 0.000267620994530704,
+      "f1_without": 0.790603400849575,
+      "permutation_drop": -0.0012445592120007287
+    }
+  }
+}
