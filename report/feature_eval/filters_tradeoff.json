@@ -1,0 +1,287 @@
+{
+  "synthetic": false,
+  "rows": [
+    {
+      "filter": "none",
+      "params": {},
+      "jitter_elev": 0.09637198962660774,
+      "jitter_roll": 2.860723644610099,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": false
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.9
+      },
+      "jitter_elev": 0.09310348816511196,
+      "jitter_roll": 2.7530822276756663,
+      "lag_elev_ms": 8.333333333333334,
+      "lag_roll_ms": 51.66666666666667,
+      "pareto_elev": false
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.7
+      },
+      "jitter_elev": 0.08658354144226947,
+      "jitter_roll": 2.5928491575986894,
+      "lag_elev_ms": 25.0,
+      "lag_roll_ms": 35.0,
+      "pareto_elev": true
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.5
+      },
+      "jitter_elev": 0.07933292237968387,
+      "jitter_roll": 2.5207915136904293,
+      "lag_elev_ms": 51.66666666666667,
+      "lag_roll_ms": 111.66666666666667,
+      "pareto_elev": true
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.35
+      },
+      "jitter_elev": 0.0726791148576769,
+      "jitter_roll": 2.511790487814964,
+      "lag_elev_ms": 85.0,
+      "lag_roll_ms": 185.0,
+      "pareto_elev": true
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.25
+      },
+      "jitter_elev": 0.06693487887121133,
+      "jitter_roll": 2.495304953309634,
+      "lag_elev_ms": 115.0,
+      "lag_roll_ms": 293.3333333333333,
+      "pareto_elev": true
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.15
+      },
+      "jitter_elev": 0.05862703718133137,
+      "jitter_roll": 2.4091003139444327,
+      "lag_elev_ms": 176.66666666666666,
+      "lag_roll_ms": 300.0,
+      "pareto_elev": true
+    },
+    {
+      "filter": "ema",
+      "params": {
+        "alpha": 0.1
+      },
+      "jitter_elev": 0.05247077374332021,
+      "jitter_roll": 2.3048434704561354,
+      "lag_elev_ms": 215.0,
+      "lag_roll_ms": 300.0,
+      "pareto_elev": true
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 0.3,
+        "beta": 0.0
+      },
+      "jitter_elev": 0.07015665427117822,
+      "jitter_roll": 2.5468870729437145,
+      "lag_elev_ms": 103.33333333333333,
+      "lag_roll_ms": 261.6666666666667,
+      "pareto_elev": true
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 0.3,
+        "beta": 3.0
+      },
+      "jitter_elev": 0.08977090158940153,
+      "jitter_roll": 2.68886557306874,
+      "lag_elev_ms": 25.0,
+      "lag_roll_ms": 63.33333333333333,
+      "pareto_elev": false
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 0.3,
+        "beta": 10.0
+      },
+      "jitter_elev": 0.09440539171681599,
+      "jitter_roll": 2.75977316464098,
+      "lag_elev_ms": 11.666666666666668,
+      "lag_roll_ms": 10.000000000000002,
+      "pareto_elev": false
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 1.0,
+        "beta": 0.0
+      },
+      "jitter_elev": 0.08360785934886279,
+      "jitter_roll": 2.5933895049265407,
+      "lag_elev_ms": 41.666666666666664,
+      "lag_roll_ms": 61.666666666666664,
+      "pareto_elev": true
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 1.0,
+        "beta": 3.0
+      },
+      "jitter_elev": 0.09067747109263576,
+      "jitter_roll": 2.7026522194025633,
+      "lag_elev_ms": 15.000000000000004,
+      "lag_roll_ms": 58.33333333333333,
+      "pareto_elev": true
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 1.0,
+        "beta": 10.0
+      },
+      "jitter_elev": 0.09401294446322643,
+      "jitter_roll": 2.7667784592528233,
+      "lag_elev_ms": 8.333333333333334,
+      "lag_roll_ms": 48.33333333333334,
+      "pareto_elev": false
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 3.0,
+        "beta": 0.0
+      },
+      "jitter_elev": 0.09076995628558981,
+      "jitter_roll": 2.6879505069241247,
+      "lag_elev_ms": 15.000000000000004,
+      "lag_roll_ms": 58.333333333333336,
+      "pareto_elev": false
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 3.0,
+        "beta": 3.0
+      },
+      "jitter_elev": 0.09262676828023222,
+      "jitter_roll": 2.744918933886077,
+      "lag_elev_ms": 8.333333333333334,
+      "lag_roll_ms": 53.333333333333336,
+      "pareto_elev": true
+    },
+    {
+      "filter": "oneeuro",
+      "params": {
+        "min_cutoff": 3.0,
+        "beta": 10.0
+      },
+      "jitter_elev": 0.09424287698993246,
+      "jitter_roll": 2.786941645460982,
+      "lag_elev_ms": 8.333333333333334,
+      "lag_roll_ms": 48.33333333333334,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 0.03
+      },
+      "jitter_elev": 0.09515414031015512,
+      "jitter_roll": 2.8264993172348603,
+      "lag_elev_ms": 13.333333333333334,
+      "lag_roll_ms": 6.666666666666667,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 0.1
+      },
+      "jitter_elev": 0.09567480849798606,
+      "jitter_roll": 2.834589125673755,
+      "lag_elev_ms": 8.333333333333334,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 0.3
+      },
+      "jitter_elev": 0.09601116485872487,
+      "jitter_roll": 2.8452518938881077,
+      "lag_elev_ms": 1.6666666666666667,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": true
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 1.0
+      },
+      "jitter_elev": 0.09621152238291282,
+      "jitter_roll": 2.8545496127356533,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 18.333333333333332,
+      "pareto_elev": true
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 3.0
+      },
+      "jitter_elev": 0.09629858826362803,
+      "jitter_roll": 2.8582952963188912,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 41.66666666666667,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 10.0
+      },
+      "jitter_elev": 0.096337896386483,
+      "jitter_roll": 2.8598718782616372,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 30.0
+      },
+      "jitter_elev": 0.09635462491500923,
+      "jitter_roll": 2.86049553949529,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": false
+    },
+    {
+      "filter": "kalman",
+      "params": {
+        "q": 100.0
+      },
+      "jitter_elev": 0.09636431416082596,
+      "jitter_roll": 2.8607724604891995,
+      "lag_elev_ms": 0.0,
+      "lag_roll_ms": 0.0,
+      "pareto_elev": false
+    }
+  ]
+}

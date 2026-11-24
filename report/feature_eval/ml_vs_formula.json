@@ -1,0 +1,225 @@
+{
+  "synthetic": false,
+  "rows": {
+    "formula": {
+      "accuracy": 0.6571033529208434,
+      "macro_f1": 0.5877120335813721,
+      "flap_f1": 0.0,
+      "per_class_f1": {
+        "idle": 0.7123287671232876,
+        "left": 0.792258064516129,
+        "right": 0.7764390896921017,
+        "flap": 0.0,
+        "dive": 0.6575342465753424
+      },
+      "idle_fa_rate": 0.028037383177570093,
+      "latency": {
+        "n_segments": 20,
+        "missed": 20,
+        "from_label_ms": null,
+        "from_onset_ms": null
+      },
+      "infer_ms": 0.0174204040274453,
+      "train_s": 0.0,
+      "explain": "cao: mỗi lệnh = 1 công thức/ngưỡng có nghĩa vật lý"
+    },
+    "logreg": {
+      "accuracy": 0.7787763567231247,
+      "macro_f1": 0.7633968656989973,
+      "flap_f1": 0.7463556851311953,
+      "per_class_f1": {
+        "idle": 0.8226890756302521,
+        "left": 0.7552083333333334,
+        "right": 0.7537012113055181,
+        "flap": 0.7463556851311953,
+        "dive": 0.7390300230946882
+      },
+      "idle_fa_rate": 0.08504672897196262,
+      "latency": {
+        "n_segments": 20,
+        "missed": 2,
+        "from_label_ms": {
+          "median": 105.94880000280682,
+          "p25": 0.0,
+          "p75": 1445.1452000066638,
+          "mean": 921.4122777807966
+        },
+        "from_onset_ms": {
+          "median": -5526.372399996035,
+          "p25": -5526.372399996035,
+          "p75": -5526.372399996035,
+          "mean": -5526.372399996035
+        }
+      },
+      "infer_ms": 0.38920349994441494,
+      "train_s": 0.02954949998529628,
+      "explain": "khá: hệ số tuyến tính",
+      "top_features": [
+        {
+          "feature": "roll:std",
+          "importance": 0.5380641131652754
+        },
+        {
+          "feature": "spread:min",
+          "importance": 0.514610106276842
+        },
+        {
+          "feature": "wing_l:max",
+          "importance": 0.491042310519837
+        },
+        {
+          "feature": "wing_r:max",
+          "importance": 0.48477262081613837
+        },
+        {
+          "feature": "wing_l:mean",
+          "importance": 0.4829554318158607
+        },
+        {
+          "feature": "wing_l:min",
+          "importance": 0.4776046411958883
+        },
+        {
+          "feature": "wing_r:min",
+          "importance": 0.4749331311076636
+        },
+        {
+          "feature": "wing_r:mean",
+          "importance": 0.4654981795089471
+        }
+      ]
+    },
+    "svm": {
+      "accuracy": 0.8047010024196336,
+      "macro_f1": 0.7939650100925573,
+      "flap_f1": 0.7844660194174757,
+      "per_class_f1": {
+        "idle": 0.8373101952277657,
+        "left": 0.7921052631578948,
+        "right": 0.7750325097529259,
+        "flap": 0.7844660194174757,
+        "dive": 0.7809110629067245
+      },
+      "idle_fa_rate": 0.09813084112149532,
+      "latency": {
+        "n_segments": 20,
+        "missed": 2,
+        "from_label_ms": {
+          "median": 87.3433499946259,
+          "p25": 0.0,
+          "p75": 1297.8236750059295,
+          "mean": 820.1433944454443
+        },
+        "from_onset_ms": {
+          "median": -5526.372399996035,
+          "p25": -5526.372399996035,
+          "p75": -5526.372399996035,
+          "mean": -5526.372399996035
+        }
+      },
+      "infer_ms": 0.5293109998456202,
+      "train_s": 0.03179452000185847,
+      "explain": "thấp",
+      "top_features": null
+    },
+    "rf": {
+      "accuracy": 0.8043553404770135,
+      "macro_f1": 0.7915102887689358,
+      "flap_f1": 0.7797563261480788,
+      "per_class_f1": {
+        "idle": 0.8438187417509899,
+        "left": 0.7735099337748345,
+        "right": 0.7742749054224464,
+        "flap": 0.7797563261480788,
+        "dive": 0.7861915367483296
+      },
+      "idle_fa_rate": 0.10373831775700934,
+      "latency": {
+        "n_segments": 20,
+        "missed": 2,
+        "from_label_ms": {
+          "median": 275.23650000512134,
+          "p25": 0.0,
+          "p75": 1445.1452000066638,
+          "mean": 888.2612000031967
+        },
+        "from_onset_ms": {
+          "median": -5526.372399996035,
+          "p25": -5526.372399996035,
+          "p75": -5526.372399996035,
+          "mean": -5526.372399996035
+        }
+      },
+      "infer_ms": 29.3829600000754,
+      "train_s": 0.391766280005686,
+      "explain": "trung bình: độ quan trọng đặc trưng",
+      "top_features": [
+        {
+          "feature": "wing_r:mean",
+          "importance": 0.07230962220621769
+        },
+        {
+          "feature": "wing_l:min",
+          "importance": 0.07150613359744269
+        },
+        {
+          "feature": "wing_l:mean",
+          "importance": 0.06990742675042726
+        },
+        {
+          "feature": "wing_r:min",
+          "importance": 0.06609546278649904
+        },
+        {
+          "feature": "wing_l:max",
+          "importance": 0.06559716771978613
+        },
+        {
+          "feature": "roll:max",
+          "importance": 0.058570891692214355
+        },
+        {
+          "feature": "roll:mean",
+          "importance": 0.05729367896627105
+        },
+        {
+          "feature": "elev:min",
+          "importance": 0.05496588518079282
+        }
+      ]
+    },
+    "mlp": {
+      "accuracy": 0.7905288627722088,
+      "macro_f1": 0.778823612213287,
+      "flap_f1": 0.7570621468926554,
+      "per_class_f1": {
+        "idle": 0.82842287694974,
+        "left": 0.7645502645502645,
+        "right": 0.7824933687002652,
+        "flap": 0.7570621468926554,
+        "dive": 0.7615894039735099
+      },
+      "idle_fa_rate": 0.10654205607476636,
+      "latency": {
+        "n_segments": 20,
+        "missed": 2,
+        "from_label_ms": {
+          "median": 105.94880000280682,
+          "p25": 0.0,
+          "p75": 1397.8791749977972,
+          "mean": 849.3889833334833
+        },
+        "from_onset_ms": {
+          "median": -5526.372399996035,
+          "p25": -5526.372399996035,
+          "p75": -5526.372399996035,
+          "mean": -5526.372399996035
+        }
+      },
+      "infer_ms": 0.6797725000069477,
+      "train_s": 0.08103983999462798,
+      "explain": "thấp",
+      "top_features": null
+    }
+  }
+}

@@ -1,0 +1,279 @@
+{
+  "default": {
+    "accuracy": 0.6695471828551677,
+    "macro_f1": 0.5930921035649778,
+    "per_class": {
+      "idle": {
+        "precision": 0.6104053236539625,
+        "recall": 0.9429906542056075,
+        "f1": 0.7410943811972089,
+        "n": 1070
+      },
+      "left": {
+        "precision": 0.8102981029810298,
+        "recall": 0.7204819277108434,
+        "f1": 0.7627551020408163,
+        "n": 415
+      },
+      "right": {
+        "precision": 0.8421052631578947,
+        "recall": 0.7069767441860465,
+        "f1": 0.7686472819216182,
+        "n": 430
+      },
+      "flap": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "n": 541
+      },
+      "dive": {
+        "precision": 0.6487025948103793,
+        "recall": 0.7437070938215103,
+        "f1": 0.6929637526652452,
+        "n": 437
+      }
+    },
+    "confusion": [
+      [
+        1009,
+        1,
+        2,
+        9,
+        49
+      ],
+      [
+        84,
+        299,
+        5,
+        0,
+        27
+      ],
+      [
+        99,
+        17,
+        304,
+        0,
+        10
+      ],
+      [
+        364,
+        47,
+        40,
+        0,
+        90
+      ],
+      [
+        97,
+        5,
+        10,
+        0,
+        325
+      ]
+    ],
+    "latency": {
+      "n_segments": 20,
+      "missed": 20,
+      "from_label_ms": null,
+      "from_onset_ms": null
+    },
+    "idle_false_alarm": {
+      "fa_rate": 0.05700934579439252,
+      "fa_per_min": 3.688657806136818
+    },
+    "rules_per_fold": [
+      {
+        "roll_thr_deg": 15.0,
+        "flap_v0": 1.0,
+        "flap_spread": 1.8,
+        "dive_spread": 1.6,
+        "dive_below": 0.5
+      },
+      {
+        "roll_thr_deg": 15.0,
+        "flap_v0": 1.0,
+        "flap_spread": 1.8,
+        "dive_spread": 1.6,
+        "dive_below": 0.5
+      },
+      {
+        "roll_thr_deg": 15.0,
+        "flap_v0": 1.0,
+        "flap_spread": 1.8,
+        "dive_spread": 1.6,
+        "dive_below": 0.5
+      },
+      {
+        "roll_thr_deg": 15.0,
+        "flap_v0": 1.0,
+        "flap_spread": 1.8,
+        "dive_spread": 1.6,
+        "dive_below": 0.5
+      },
+      {
+        "roll_thr_deg": 15.0,
+        "flap_v0": 1.0,
+        "flap_spread": 1.8,
+        "dive_spread": 1.6,
+        "dive_below": 0.5
+      }
+    ]
+  },
+  "tuned": {
+    "accuracy": 0.6571033529208434,
+    "macro_f1": 0.5877120335813721,
+    "per_class": {
+      "idle": {
+        "precision": 0.5621621621621622,
+        "recall": 0.9719626168224299,
+        "f1": 0.7123287671232876,
+        "n": 1070
+      },
+      "left": {
+        "precision": 0.8527777777777777,
+        "recall": 0.7397590361445783,
+        "f1": 0.792258064516129,
+        "n": 415
+      },
+      "right": {
+        "precision": 0.9148264984227129,
+        "recall": 0.6744186046511628,
+        "f1": 0.7764390896921017,
+        "n": 430
+      },
+      "flap": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "n": 541
+      },
+      "dive": {
+        "precision": 0.7213114754098361,
+        "recall": 0.6041189931350115,
+        "f1": 0.6575342465753424,
+        "n": 437
+      }
+    },
+    "confusion": [
+      [
+        1040,
+        0,
+        1,
+        0,
+        29
+      ],
+      [
+        105,
+        307,
+        0,
+        0,
+        3
+      ],
+      [
+        120,
+        13,
+        290,
+        0,
+        7
+      ],
+      [
+        417,
+        36,
+        25,
+        0,
+        63
+      ],
+      [
+        168,
+        4,
+        1,
+        0,
+        264
+      ]
+    ],
+    "latency": {
+      "n_segments": 20,
+      "missed": 20,
+      "from_label_ms": null,
+      "from_onset_ms": null
+    },
+    "idle_false_alarm": {
+      "fa_rate": 0.028037383177570093,
+      "fa_per_min": 1.6511219513221307
+    },
+    "rules_per_fold": [
+      {
+        "roll_thr_deg": 29.0,
+        "flap_v0": 1.75,
+        "flap_spread": 1.8,
+        "dive_spread": 1.4,
+        "dive_below": 0.30000000000000004
+      },
+      {
+        "roll_thr_deg": 34.0,
+        "flap_v0": 1.75,
+        "flap_spread": 1.8,
+        "dive_spread": 1.7999999999999998,
+        "dive_below": 0.8
+      },
+      {
+        "roll_thr_deg": 33.0,
+        "flap_v0": 1.75,
+        "flap_spread": 1.8,
+        "dive_spread": 1.5999999999999999,
+        "dive_below": 0.7000000000000001
+      },
+      {
+        "roll_thr_deg": 31.0,
+        "flap_v0": 1.75,
+        "flap_spread": 1.8,
+        "dive_spread": 1.5999999999999999,
+        "dive_below": 0.7000000000000001
+      },
+      {
+        "roll_thr_deg": 34.0,
+        "flap_v0": 1.75,
+        "flap_spread": 1.8,
+        "dive_spread": 1.4,
+        "dive_below": 0.30000000000000004
+      }
+    ]
+  },
+  "final_rule": {
+    "roll_thr_deg": 31.0,
+    "flap_v0": 1.75,
+    "flap_spread": 1.8,
+    "dive_spread": 1.4,
+    "dive_below": 0.30000000000000004
+  },
+  "default_rule": {
+    "roll_thr_deg": 15.0,
+    "flap_v0": 1.0,
+    "flap_spread": 1.8,
+    "dive_spread": 1.6,
+    "dive_below": 0.5
+  },
+  "sessions": [
+    {
+      "name": "ban_1m_20261124-141431",
+      "distance": 1.0
+    },
+    {
+      "name": "ban_1m_20261124-141913",
+      "distance": 1.0
+    },
+    {
+      "name": "ban_1m_20261124-142310",
+      "distance": 1.0
+    },
+    {
+      "name": "ban_2m_20261124-142715",
+      "distance": 2.0
+    },
+    {
+      "name": "ban_2m_20261124-143251",
+      "distance": 2.0
+    }
+  ],
+  "synthetic": false
+}

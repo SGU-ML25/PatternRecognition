@@ -1,5 +1,6 @@
 # dữ liệu & kết quả nặng ở thư mục gốc (tải/tạo lại bằng script)
-/data/
+/data/*
+!/data/sessions/
 /checkpoints/
 /logs/
 # model + file nén ở mọi nơi (runs/ chỉ commit log, json, biểu đồ)
